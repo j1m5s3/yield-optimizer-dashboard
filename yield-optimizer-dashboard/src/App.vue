@@ -9,8 +9,8 @@
 
   // 2. Create wagmiConfig
   const metadata = {
-    name: 'AppKit',
-    description: 'AppKit Example',
+    name: 'Yield Optimizer Dashboard',
+    description: 'Dashboard for Defi Yield Optimizer',
     url: 'http://localhost:5173/', // origin must match your domain & subdomain
     icons: ['https://avatars.githubusercontent.com/u/37784886']
   }
