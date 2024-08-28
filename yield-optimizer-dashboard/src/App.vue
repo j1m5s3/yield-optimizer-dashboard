@@ -1,4 +1,5 @@
 <script setup>
+  import UserDashboard from './components/UserDashboard.vue';
   import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/vue'
 
   import { mainnet, arbitrum, sepolia } from 'viem/chains'
@@ -24,17 +25,21 @@
   })
 
   reconnect(config)
+
   // 3. Create modal
   createWeb3Modal({
     wagmiConfig: config,
     projectId,
     enableAnalytics: true // Optional - defaults to your Cloud configuration  
   })
+
+  
 </script>
 
 
 <template>
   <w3m-button />
+  <UserDashboard />
 </template>
 
 
