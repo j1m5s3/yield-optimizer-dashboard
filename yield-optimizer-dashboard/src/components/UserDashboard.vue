@@ -20,21 +20,15 @@ export default {
     <div id="dashboard">
         <b-row class="dashboard-row" cols="2">
             <b-col class="mb-3 mx-3" :md="4">
-                <b-card title="Market Stats" class="rounded" bg-variant="dark">
-                    <CryptoDropdown @cryptoSelected="handleCryptoSelected" />
-                    <MarketStats :selectedCrypto="selectedCrypto"/>
-                </b-card>
-            </b-col>
-            <b-col class="mb-3 mx-3" :md="4">
-                <b-card title="Deploy Configuration" class="rounded" bg-variant="dark">
-                    <BotDeploy />
+                <b-card title="Deploy SMA" class="rounded" bg-variant="dark">
+                    PLACEHOLDER
                 </b-card>
             </b-col>
         </b-row>
         <b-row class="bot-status-row">
             <b-col class="mb-3 mx-3" >
                 <b-card title="Active Bots" class="rounded" bg-variant="dark">
-                   <BotsStats />
+                   PLACEHOLDER
                 </b-card>
             </b-col>
         </b-row>
