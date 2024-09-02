@@ -1,8 +1,10 @@
 <script>
-import { SMAFactoryInterace } from '@/contracts/interfaces/SMAFactoryInterface.js';
+import SMAFactoryInterface from '@/contracts/interfaces/SMAFactoryInterface.js';
+import { getAccount } from '@wagmi/core'
 
-const smaFactoryInterface = new SMAFactoryInterace();
+import { config } from '@/utils/configs/chainConfig.js'
 
+//v-if="!isBusy"
 export default {
     data() {
         return {
@@ -13,9 +15,26 @@ export default {
     },
     methods: {
         async submitForm() {
-            this.isBusy = true;
-            this.txnReceipt = await smaFactoryInterface.deploySMA(this.clientAddress);
-            this.isBusy = false;
+            try {
+                this.isBusy = true;
+                const account = getAccount(config);
+                if (!account) {
+                    console.error('Account not found');
+                    return;
+                }
+                console.log(account);
+                const smaFactoryInterface = new SMAFactoryInterface(
+                    account.chain.name, account.address, config
+                );
+
+               //debugger;
+                this.txnReceipt = await smaFactoryInterface.deploySMA(account.address);
+                console.log(this.txnReceipt);
+                this.isBusy = false;
+            } catch (error) {
+                console.error(error);
+                this.isBusy = false;
+            }
         },
         resetForm() {
             console.log('reset');
@@ -26,9 +45,7 @@ export default {
 </script>
 
 <template>
-    <b-form @submit="submitForm" @reset="resetForm" v-if="!isBusy">
-        <b-button type="submit" variant="primary">Submit</b-button>
-        <b-button type="reset" variant="danger">Reset</b-button>
-    </b-form>
-    <b-spinner v-else></b-spinner>
+    <form @submit="submitForm" @reset="resetForm" v-if="!isBusy">
+        <button type="submit" variant="primary"> Deploy SMA </button>
+    </form>
 </template>

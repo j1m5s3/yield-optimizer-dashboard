@@ -1,10 +1,12 @@
 <script setup>
   import UserDashboard from './components/UserDashboard.vue';
-  import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/vue'
+  import { createWeb3Modal } from '@web3modal/wagmi/vue' //, defaultWagmiConfig } from '@web3modal/wagmi/vue'
 
-  import { mainnet, arbitrum, sepolia } from 'viem/chains'
+  //import { mainnet, arbitrum, sepolia } from 'viem/chains'
   import { reconnect } from '@wagmi/core'
 
+  import { config } from '@/utils/configs/chainConfig.js'
+/*
   // 1. Define constants
   const projectId = import.meta.env.VITE_PROJECT_ID
 
@@ -23,8 +25,11 @@
     projectId,
     metadata
   })
-
+*/
   reconnect(config)
+
+  // 1. Define constants
+  const projectId = import.meta.env.VITE_PROJECT_ID
 
   // 3. Create modal
   createWeb3Modal({
@@ -38,8 +43,17 @@
 
 
 <template>
-  <w3m-button />
-  <UserDashboard />
+  <div id="app">
+    <header>
+      <div class="wrapper">
+        <h1>Yield Optimizer Dashboard</h1>
+        <w3m-button />
+      </div>
+    </header>
+    <main>
+      <UserDashboard />
+    </main>
+  </div>
 </template>
 
 

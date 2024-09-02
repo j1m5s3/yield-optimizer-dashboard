@@ -18,12 +18,14 @@ class SMAFactoryInterface {
    
     abi; // List of functions in the contract
     address; // Address of the contract
-    config; // Configuration object (WagmiConfig)
+    config; // Configuration object (wagmiConfig)
+    account; // Account address
 
-    constructor(config, network) {
-        this.config = config;
+    constructor(network, account,config) {
         this.abi = SMAFactoryABI.abi;
         this.address = SMAFactoryABI.addresses[network];
+        this.config = config;
+        this.account = account;
     }
 
     // Get the maximum number of SMAs allowed
@@ -33,7 +35,7 @@ class SMAFactoryInterface {
             {
                 abi: this.abi, 
                 address: this.address, 
-                functionName: "readSMACount"
+                functionName: "getMaxAllowedSMA"
             }
         );
 
@@ -63,10 +65,13 @@ class SMAFactoryInterface {
                 abi: this.abi, 
                 address: this.address, 
                 functionName: "deploySMA",
-                args: [prospectiveClientAddress]
+                args: [prospectiveClientAddress],
+                account: this.account
             }
         );
 
         return data;
     }
 }
+
+export default SMAFactoryInterface;
