@@ -47,7 +47,7 @@
     <header>
       <div class="wrapper">
         <h1>Yield Optimizer Dashboard</h1>
-        <w3m-button />
+        <w3m-button size="sm"/>
       </div>
     </header>
     <main>

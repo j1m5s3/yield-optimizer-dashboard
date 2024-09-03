@@ -1,5 +1,9 @@
 <script>
 import { SMAInterface } from '@/contracts/interfaces/SMAInterface.js';
+import SMAFactoryInterface from '@/contracts/interfaces/SMAFactoryInterface.js';
+import { getAccount } from '@wagmi/core'
+
+import { config } from '@/utils/configs/chainConfig.js'
 
 const smaInterface = new SMAInterface();
 
@@ -12,6 +16,9 @@ export default {
             amount: 0,
             txnReceipt: null,
         };
+    },
+    async mounted() {
+        const userSMAData = await this.userSMAData();
     },
     methods: {
         async submitTransfer(transferType) {
@@ -27,6 +34,20 @@ export default {
         resetForm() {
             console.log('reset');
         },
+        async userSMAData() {
+            const account = getAccount(config);
+            if (!account) {
+                console.error('Account not found');
+                return;
+            }
+            console.log(account);
+
+            const smaFactoryInterface = new SMAFactoryInterface(
+                    account.chain.name, account.address, config
+                );
+            
+            const smaAddress = await smaFactoryInterface.getClientSMAAddress(account.address);
+        }
     },
 };
 
