@@ -1,31 +1,12 @@
 <script setup>
   import UserDashboard from './components/UserDashboard.vue';
-  import { createWeb3Modal } from '@web3modal/wagmi/vue' //, defaultWagmiConfig } from '@web3modal/wagmi/vue'
+  import { createWeb3Modal } from '@web3modal/wagmi/vue';
 
-  //import { mainnet, arbitrum, sepolia } from 'viem/chains'
   import { reconnect } from '@wagmi/core'
 
   import { config } from '@/utils/configs/chainConfig.js'
-/*
-  // 1. Define constants
-  const projectId = import.meta.env.VITE_PROJECT_ID
 
-  // 2. Create wagmiConfig
-  const metadata = {
-    name: 'Yield Optimizer Dashboard',
-    description: 'Dashboard for Defi Yield Optimizer',
-    url: 'http://localhost:5173/', // origin must match your domain & subdomain
-    icons: ['https://avatars.githubusercontent.com/u/37784886']
-  }
-  
-
-  const chains = [mainnet, arbitrum, sepolia]
-  const config = defaultWagmiConfig({
-    chains,
-    projectId,
-    metadata
-  })
-*/
+  // Reconnect wallet on page refresh
   reconnect(config)
 
   // 1. Define constants
