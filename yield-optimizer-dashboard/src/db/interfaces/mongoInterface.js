@@ -89,12 +89,33 @@ class MongoInterface extends MongoClient {
         try {
             const document = await this.db.collection(collection).findOne(query);
             console.log("Found document in collection");
+
+            return document;
         } catch (error) {
             console.error("Error finding document in collection");
             console.error(error);
             return null;
         }
+    }
 
-        return document;
+    /**
+     * findMany - Find multiple documents in a collection
+     * 
+     * @param {string} collection - The name of the collection
+     * @param {object} query - The query to find the documents
+     * 
+     * @returns {object[]} - The documents if found, null otherwise
+     */
+    async findMany(collection, query) {
+        try {
+            const documents = await this.db.collection(collection).find(query).toArray();
+            console.log("Found documents in collection");
+
+            return documents;
+        } catch (error) {
+            console.error("Error finding documents in collection");
+            console.error(error);
+            return null;
+        }
     }
 }
