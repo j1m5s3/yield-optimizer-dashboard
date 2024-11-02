@@ -1,5 +1,6 @@
 <script setup>
   import UserDashboard from './components/UserDashboard.vue';
+  import RatesView from './components/items/views/rates/RatesView.vue';
 
   import { createWeb3Modal } from '@web3modal/wagmi/vue';
   import { reconnect } from '@wagmi/core'
@@ -63,11 +64,22 @@
     <header>
       <div class="wrapper">
         <h1>Yield Optimizer Dashboard</h1>
-        <w3m-button size="sm"/>
       </div>
     </header>
     <main>
-      <UserDashboard v-model="showDashboard" v-if="showDashboard"/>
+      <div id="w3-button" class="row">
+        <w3m-button size="sm"/>
+      </div>
+      <div class="row">
+            <div class="col">
+                <div class="card" title="Rates">
+                    <RatesView/>
+                </div>
+            </div>
+      </div>
+      <div class="row">
+        <UserDashboard v-model="showDashboard" v-if="showDashboard"/>
+      </div>
     </main>
   </div>
 </template>
@@ -76,6 +88,7 @@
 <style scoped>
 header {
   line-height: 1.5;
+  z-index: 9;
 }
 
 .logo {
@@ -88,6 +101,7 @@ header {
     display: flex;
     place-items: center;
     padding-right: calc(var(--section-gap) / 2);
+    position: fixed;
   }
 
   .logo {
@@ -100,4 +114,13 @@ header {
     flex-wrap: wrap;
   }
 }
+
+main {
+  padding-top: 4rem;
+}
+
+w3m-button {
+  padding: 1rem;
+}
+
 </style>
