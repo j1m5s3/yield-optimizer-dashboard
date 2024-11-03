@@ -56,23 +56,28 @@ export default {
         }
     },
     async mounted() {
-        let payload = {};
+        let live_payload = {};
+        let hist_payload = {};
 
         if (this.selectedToken != '') {
-            payload = { chain_name: this.selectedChain, token_symbol: this.selectedToken };
+            live_payload = { chain_name: this.selectedChain, token_symbol: this.selectedToken };
         } else {
-            payload = { chain_name: this.selectedChain };
+            live_payload = { chain_name: this.selectedChain };
         }
 
+        hist_payload = { chain_name: this.selectedChain, time_range_option: this.selectedTimeRange };
+
         this.isBusy = true;
-        const res = await getLiveRates(payload);
-        console.log(res);
+        const res_live = await getLiveRates(live_payload);
+        const res_hist = await getHistoricalRates(hist_payload);
 
         this.loadChains();
         this.loadTokens();
         this.loadProtocols();
 
-        this.liveRates = res.rates;
+        this.liveRates = res_live.rates;
+        this.historicalRates = res_hist.rates;
+
         this.isBusy = false;
     },
     methods: {
@@ -89,6 +94,26 @@ export default {
 
             this.liveRates = res.rates;
             this.isBusy = false;
+        },
+        setChartData() {
+            this.chartData.labels = this.historicalRates.map((rate) => {
+                return new Date(rate.timestamp * 1000).toLocaleString('en-US', {
+                    year: 'numeric', month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    second: 'numeric',
+                    timeZoneName: 'short'
+                });
+            });
+
+            this.chartData.datasets[0].data = this.historicalRates.map((rate) => {
+                return rate.supply_apr.toFixed(3);
+            });
+
+            this.chartData.datasets[1].data = this.historicalRates.map((rate) => {
+                return rate.supply_apy.toFixed(3);
+            });
         },
         loadChains() {
             try {
