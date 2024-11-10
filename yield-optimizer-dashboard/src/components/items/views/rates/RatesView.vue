@@ -1,18 +1,21 @@
 <script>
 import { getLiveRates, getHistoricalRates } from '@/utils/apis/RatesApi';
+import { unpackHistRates } from '@/utils/helpers/RatesHelpers.js';
 import ratesIdentifiers from '@/utils/constants/ratesIdentifiers.json';
 
 import { Line } from 'vue-chartjs';
-import { 
-    Chart as ChartJS, 
-    Title, 
-    Tooltip, 
-    Legend, 
-    BarElement, 
-    CategoryScale, 
+import {
+    Chart as ChartJS,
+    Title,
+    Tooltip,
+    Legend,
+    CategoryScale,
     LinearScale,
-    LineElement 
+    LineElement,
+    PointElement
 } from 'chart.js'
+
+ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale)
 
 export default {
     name: 'RatesView',
@@ -23,28 +26,20 @@ export default {
             historicalRates: [],
             chartData: {
                 labels: [],
-                datasets: [
-                    {
-                        label: 'Supply APR',
-                        data: [],
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        fill: false,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Supply APY',
-                        data: [],
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        fill: false,
-                        tension: 0.4
-                    }
-                ]
+                datasets: []
+            },
+            chartConfig: {
+                type: 'line',
+                data: {},
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                }
             },
             chains: [],
             tokens: [],
             protocols: [],
+            tokenRGBA: {},
             selectedChain: 'ARBITRUM',
             dataOptions: ['LIVE', 'HISTORICAL'],
             histTimeRangeOptions: ['1D', '1W', '1M'],
@@ -74,9 +69,12 @@ export default {
         this.loadChains();
         this.loadTokens();
         this.loadProtocols();
+        this.loadRGBA();
 
         this.liveRates = res_live.rates;
         this.historicalRates = res_hist.rates;
+
+        this.setChartData(res_hist);
 
         this.isBusy = false;
     },
@@ -95,25 +93,54 @@ export default {
             this.liveRates = res.rates;
             this.isBusy = false;
         },
-        setChartData() {
-            this.chartData.labels = this.historicalRates.map((rate) => {
-                return new Date(rate.timestamp * 1000).toLocaleString('en-US', {
+        setChartData(rawHistData) {
+            console.log("RAW HISTORICAL DATA: ", rawHistData);
+
+            let timestamps = [];
+            for (let tsIndex = 0; tsIndex < rawHistData.timestamps.length; tsIndex++) {
+                let ts = rawHistData.timestamps[tsIndex];
+                timestamps.push(new Date(ts * 1000).toLocaleString('en-US', {
                     year: 'numeric', month: 'long',
                     day: 'numeric',
                     hour: 'numeric',
                     minute: 'numeric',
                     second: 'numeric',
                     timeZoneName: 'short'
-                });
-            });
+                }));
+            }
+            console.log("TIMESTAMPS: ", timestamps);
+            this.chartData.labels = timestamps;
 
-            this.chartData.datasets[0].data = this.historicalRates.map((rate) => {
-                return rate.supply_apr.toFixed(3);
-            });
+            let datasets = [];
+            for (let protocolIndex = 0; protocolIndex < this.protocols.length; protocolIndex++) {
+                let protocol = this.protocols[protocolIndex];
+                for (let tokenIndex = 0; tokenIndex < this.tokens.length; tokenIndex++) {
+                    let token = this.tokens[tokenIndex];
 
-            this.chartData.datasets[1].data = this.historicalRates.map((rate) => {
-                return rate.supply_apy.toFixed(3);
-            });
+                    let unpackedRates = unpackHistRates(rawHistData, protocol, token);
+                    console.log("UNPACKED RATES: ", unpackedRates);
+                    if (unpackedRates.length > 0) {
+                        for (let unpackedRatesIndex = 0; unpackedRatesIndex < unpackedRates.length; unpackedRatesIndex++) {
+                            let unpackedRate = unpackedRates[unpackedRatesIndex];
+                            
+                            let chartDataset = {
+                            label: `${token} - ${protocol}`,
+                            data: unpackedRate.rate,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: this.tokenRGBA[token],
+                            fill: false,
+                            tension: 0.4
+                        }
+                            datasets.push(chartDataset);
+                        }
+                    }
+                }
+            }
+
+            this.chartData.datasets = datasets;
+            console.log("CHART DATA: ", this.chartData);
+
+            this.chartConfig.data = this.chartData;
         },
         loadChains() {
             try {
@@ -141,6 +168,14 @@ export default {
                     this.protocols.push(protocol);
                 });
                 console.log("PROTOCOLS LOADED: ", this.protocols);
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        loadRGBA() {
+            try {
+                this.tokenRGBA = ratesIdentifiers['token_rgba'];
+                console.log("TOKEN RGBA LOADED: ", this.tokenRGBA);
             } catch (error) {
                 console.error(error);
             }
@@ -202,7 +237,8 @@ export default {
         </div>
         <div class="col">
             <select class="dropdown" v-bind:value="selectedTimeRange" @change="onSelectedTimeRangeChange">
-                <option v-for="(timeRange, index) in histTimeRangeOptions" :key="index" :value="timeRange">{{ timeRange }}</option>
+                <option v-for="(timeRange, index) in histTimeRangeOptions" :key="index" :value="timeRange">{{ timeRange
+                    }}</option>
             </select>
         </div>
     </div>
@@ -235,18 +271,19 @@ export default {
                             minute: 'numeric',
                             second: 'numeric',
                             timeZoneName: 'short'
-                            }) }}</td>
+                        }) }}</td>
                     </tr>
                 </tbody>
             </table>
             <div id="hist-data" v-else-if="selectedData == 'HISTORICAL'">
+                <Line :data="chartData" />
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-.table{
-  font-size: 10px;
+.table {
+    font-size: 10px;
 }
 </style>
