@@ -1,0 +1,10 @@
+{
+    "token_symbols": ["USDC", "DAI", "USDT"],
+    "chains": ["ARBITRUM", "ETH_MAIN", "OPTIMISM"],
+    "protocols": ["AAVE", "COMPOUND", "RADIANT"],
+    "token_rgba": {
+        "USDC": "rgba(0, 0, 255, 0.5)",
+        "DAI": "rgba(0, 255, 0, 0.5)",
+        "USDT": "rgba(255, 0, 0, 0.5)"
+    }
+}
