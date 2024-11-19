@@ -4,7 +4,12 @@
     "protocols": ["AAVE", "COMPOUND", "RADIANT"],
     "token_rgba": {
         "USDC": "rgba(0, 0, 255, 0.5)",
-        "DAI": "rgba(0, 255, 0, 0.5)",
-        "USDT": "rgba(255, 0, 0, 0.5)"
+        "DAI": "rgba(255, 255, 0, 0.5)",
+        "USDT": "rgba(0, 255, 0, 0.5)"
+    },
+    "protocol_rgba": {
+        "AAVE": "rgba(128, 0, 128, 1))",
+        "COMPOUND": "rgba(0, 255, 0, 1)",
+        "RADIANT": "rgba(192, 192, 192, 1)"
     }
 }

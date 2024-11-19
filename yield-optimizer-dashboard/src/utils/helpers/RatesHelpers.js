@@ -1,5 +1,6 @@
 export function unpackHistRates(api_res, desired_protocol, desired_token) {
-
+    console.log(`Unpacking rates for ${desired_token} - ${desired_protocol}`);
+    
     let rates = api_res.rates[desired_protocol];
     if (rates == null) {
         return [];
@@ -24,3 +25,11 @@ export function unpackHistRates(api_res, desired_protocol, desired_token) {
 
     return unpacked_rates;
 }
+
+export function ratesXY(xVals, yVals) {
+    let xy = [];
+    for (let i = 0; i < xVals.length; i++) {
+        xy.push({x: xVals[i], y: yVals[i]});
+    }
+    return xy;
+}   
