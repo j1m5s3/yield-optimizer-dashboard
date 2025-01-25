@@ -21,11 +21,16 @@ class SMAFactoryInterface {
     config; // Configuration object (wagmiConfig)
     account; // Account address
 
-    constructor(network, account,config) {
+    constructor(network, account, config, address=null) {
         this.abi = SMAFactoryABI.abi;
-        this.address = SMAFactoryABI.addresses[network];
         this.config = config;
         this.account = account;
+
+        if (address) {
+            this.address = address;
+        } else {
+            this.address = SMAFactoryABI.addresses[network];
+        }
     }
 
     // Get the maximum number of SMAs allowed

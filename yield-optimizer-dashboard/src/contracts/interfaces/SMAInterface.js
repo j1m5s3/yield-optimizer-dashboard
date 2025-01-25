@@ -16,10 +16,16 @@ export class SMAInterface {
     * @param {string} network - Network name
     */
 
-    constructor(config, network) {
+    constructor(network, account, config, address=null) {
         this.config = config;
         this.abi = SMAABI.abi;
-        this.address = SMAABI.addresses[network];
+        this.account = account;
+
+        if (address) {
+            this.address = address;
+        } else {
+            this.address = SMAABI.addresses[network];
+        }
     }
 
     /*
@@ -54,6 +60,70 @@ export class SMAInterface {
                 address: this.address,
                 functionName: "transferFromSMA",
                 args: [asset, amount]
+            }
+        );
+
+        return data;
+    }
+
+    /*
+    * Get the balance of an asset in the SMA 
+    * 
+    * @param {string} asset - Asset to get the balance of
+    */
+    getAssetBalance = async (asset) => {
+        const data = await readContract(
+            this.config,
+            {
+                abi: this.abi,
+                address: this.address,
+                functionName: "getAssetBalance",
+                args: [asset]
+            }
+        );
+
+        return data;
+    }
+
+    /**
+     * Get all asset balances in the SMA
+     */
+    getAssetBalances = async () => {
+        const data = await readContract(
+            this.config,
+            {
+                abi: this.abi,
+                address: this.address,
+                functionName: "getAssetBalances",
+                args: []
+            }
+        );
+
+        return data;
+    }
+
+    invest = async (asset, fromProto, toProto) => {
+        const data = await writeContract(
+            this.config,
+            {
+                abi: this.abi,
+                address: this.address,
+                functionName: "invest",
+                args: [asset, toProto, fromProto]
+            }
+        );
+
+        return data;
+    }
+
+    setActiveManagement = async (active) => {
+        const data = await writeContract(
+            this.config,
+            {
+                abi: this.abi,
+                address: this.address,
+                functionName: "setActiveManagement",
+                args: [active]
             }
         );
 

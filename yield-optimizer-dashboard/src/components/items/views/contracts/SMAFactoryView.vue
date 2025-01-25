@@ -1,5 +1,6 @@
 <script>
 import { SMAFactoryInterface } from '@/contracts/interfaces/SMAFactoryInterface.js';
+import { useAccount } from '@wagmi/vue'
 
 export default {
     data() {
@@ -14,7 +15,7 @@ export default {
     },
     methods: {
         async smaFactory() {
-            const account = getAccount(config);
+            const account = useAccount(config);
             if (!account) {
                 console.error('Account not found');
                 return;
@@ -33,3 +34,11 @@ export default {
     },
 };
 </script>
+
+<template>
+    <div id="factory-view">
+        <div class="container">
+        </div>
+    </div>
+
+</template>
