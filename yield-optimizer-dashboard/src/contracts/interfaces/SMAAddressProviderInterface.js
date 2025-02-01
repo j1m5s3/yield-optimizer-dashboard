@@ -76,3 +76,5 @@ class SMAAddressProviderInterface {
     }
 
 }
+
+export default SMAAddressProviderInterface;
