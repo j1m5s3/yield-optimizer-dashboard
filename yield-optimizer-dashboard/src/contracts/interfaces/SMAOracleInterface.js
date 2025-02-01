@@ -64,3 +64,5 @@ class SMAOracleInterface {
     }
 }
 
+export default SMAOracleInterface;
+
