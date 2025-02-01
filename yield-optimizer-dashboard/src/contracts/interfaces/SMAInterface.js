@@ -14,6 +14,8 @@ export class SMAInterface {
     * 
     * @param {WagmiConfig} config - Configuration object
     * @param {string} network - Network name
+    * @param {string} account - Account address
+    * @param {string} address - Address of the contract
     */
 
     constructor(network, account, config, address=null) {
@@ -130,3 +132,5 @@ export class SMAInterface {
         return data;
     }
 }
+
+export default SMAInterface;
