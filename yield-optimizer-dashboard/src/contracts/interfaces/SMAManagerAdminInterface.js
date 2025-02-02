@@ -1,16 +1,16 @@
 // Local
-import { SMAAddressProviderABI } from "../abi/SMAAddressProviderABI";
+import { SMAManagerAdminABI } from "../abi/SMAManagerAdminABI";
 
 // External
 import { readContract } from "@wagmi/core";
 
-class SMAAddressProviderInterface {
+class SMAManagerAdminInterface {
     /*
-    * SMAAddressProviderInterface
+    * SMAManagerAdminInterface
     * 
-    * Interface for the SMAAddressProvider contract
+    * Interface for the SMAManagerAdmin contract
     * 
-    * This class is used to interact with the SMAAddressProvider contract
+    * This class is used to interact with the SMAManagerAdmin contract
     * 
     * @param {WagmiConfig} config - Configuration object
     * @param {string} network - Network name
@@ -24,59 +24,40 @@ class SMAAddressProviderInterface {
     account; // Account address
 
     constructor(network, account, config, address=null) {
-        this.abi = SMAAddressProviderABI.abi;
+        this.abi = SMAManagerAdminABI.abi;
         this.config = config;
         this.account = account;
 
         if (address) {
             this.address = address;
         } else {
-            this.address = SMAAddressProviderABI.addresses[network];
+            this.address = SMAManagerAdminABI.addresses[network];
         }
     }
 
-    // Get SMA factory address
-    getSMAFactoryAddress = async () => {
+    getBaseTokens = async () => {
         const data = await readContract(
             this.config,
             {
                 abi: this.abi, 
                 address: this.address, 
-                functionName: "getSMAFactory"
+                functionName: "getAllowedBaseTokens"
             }
         );
 
         return data;
     }
 
-    // Get oracle address
-    getOracleAddress = async () => {
+    getAllowedInterestTokens = async () => {
         const data = await readContract(
             this.config,
             {
                 abi: this.abi, 
                 address: this.address, 
-                functionName: "getOracle"
+                functionName: "getAllowedInterestTokens"
             }
         );
 
         return data;
     }
-
-    // Get manager admin address
-    getManagerAdminAddress = async () => {
-        const data = await readContract(
-            this.config,
-            {
-                abi: this.abi, 
-                address: this.address, 
-                functionName: "getSMAManagerAdmin"
-            }
-        );
-
-        return data;
-    }
-
 }
-
-export default SMAAddressProviderInterface;
