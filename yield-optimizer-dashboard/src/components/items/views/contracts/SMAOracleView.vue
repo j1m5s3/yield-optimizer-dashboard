@@ -1,6 +1,7 @@
 <script>
 import SMAAddressProviderInterface from '@/contracts/interfaces/SMAAddressProviderInterface';
 import SMAOracleInterface from '@/contracts/interfaces/SMAOracleInterface';
+import SMAManagerAdminInterface from '@/contracts/interfaces/SMAManagerAdminInterface';
 
 import { getAccount } from '@wagmi/core'
 
@@ -14,6 +15,7 @@ export default {
             isBusy: false,
             clientAddress: '',
             oracleAddress: '',
+            managerAdminAddress: '',
             smaFee: '',
             bestRateProtocols: [],
             txnReceipt: null,
@@ -23,6 +25,7 @@ export default {
         let addresses = await this.setAddresses();
 
         this.oracleAddress = addresses.oracle;
+        this.managerAdminAddress = addresses.managerAdmin;
     },
     methods: {
         async setAddresses() {
@@ -43,7 +46,13 @@ export default {
                 oracleAddress = '';
             }
 
-            return {oracle: oracleAddress};
+            let managerAdminAddress = await smaAddressProviderInterface.getManagerAdminAddress();
+            if (!managerAdminAddress) {
+                console.error('Manager Admin Address not found');
+                managerAdminAddress = '';
+            }
+
+            return {oracle: oracleAddress, managerAdmin: managerAdminAddress};
         },
         async getOracleData() {
             try {
@@ -54,6 +63,12 @@ export default {
                     return;
                 }
                 console.log(account);
+
+                const managerAdminInterface = new SMAManagerAdminInterface(
+                    account.chain.name, account.address, config, this.managerAdminAddress
+                );
+
+                let allowedBaseTokens = await managerAdminInterface.getBaseTokens();
 
                 const smaOracleInterface = new SMAOracleInterface(
                     account.chain.name, account.address, config, this.oracleAddress

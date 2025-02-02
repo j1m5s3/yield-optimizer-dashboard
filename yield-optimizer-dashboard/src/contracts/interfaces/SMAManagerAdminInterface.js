@@ -61,3 +61,5 @@ class SMAManagerAdminInterface {
         return data;
     }
 }
+
+export default SMAManagerAdminInterface;
