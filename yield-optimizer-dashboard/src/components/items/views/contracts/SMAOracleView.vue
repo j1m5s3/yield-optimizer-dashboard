@@ -6,7 +6,8 @@ import SMAManagerAdminInterface from '@/contracts/interfaces/SMAManagerAdminInte
 import { getAccount } from '@wagmi/core'
 
 import { config } from '@/utils/configs/chainConfig.js'
-import { get } from '@vueuse/core';
+import { ethers } from 'ethers';
+import { c } from 'vite/dist/node/types.d-aGj9QkWt';
 
 // TODO: Consider replacing best rate protocol func call with api call if no account is found
 export default {
@@ -69,19 +70,116 @@ export default {
                 );
 
                 let allowedBaseTokens = await managerAdminInterface.getBaseTokens();
+                let tokenInfo = [];
+                for (let i = 0; i < allowedBaseTokens.length; i++) {
+                    tokenInfo.push({tokenAddress: allowedBaseTokens[i][0], tokenSymbol: allowedBaseTokens[i][1]});
+                }
 
                 const smaOracleInterface = new SMAOracleInterface(
                     account.chain.name, account.address, config, this.oracleAddress
                 );
 
-                const fee = await smaOracleInterface.getFee();
-                console.log(oracleData);
+                let bestRateProtocols = []
+                for (let i = 0; i < tokenInfo.length; i++) {
+                    let bestRateProtocol = await smaOracleInterface.getBestRateProtocol(tokenInfo[i].tokenAddress);
+                    bestRateProtocols.push({
+                        tokenSymbol: tokenInfo[i].tokenSymbol,
+                        tokenAddress: tokenInfo[i].tokenAddress, 
+                        bestRateProtocol: bestRateProtocol
+                    });
+                }
+                console.log(bestRateProtocols);
+
+                let feeGwei = await smaOracleInterface.getFee();
+                let fee = ethers.utils.formatUnits(feeGwei, 'gwei');
+
+                console.log(fee);
                 this.isBusy = false;
+
+                return {fee: fee, bestRateProtocols: bestRateProtocols};
             } catch (error) {
                 console.error(error);
                 this.isBusy = false;
+                return {fee: '', bestRateProtocols: []};
             }
         },
     },
 };
 </script>
+
+<template>
+    <div id="oracle-view">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1>Oracle</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <h2>Oracle Data</h2>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="oracle-address">Oracle Address</label>
+                                        <input type="text" class="form-control" id="oracle-address" v-model="oracleAddress" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group
+                                    ">
+                                        <label for="manager-admin-address">Manager Admin Address</label>
+                                        <input type="text" class="form-control" id="manager-admin-address" v-model="managerAdminAddress" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group
+                                    ">
+                                        <label for="sma-fee">SMA Fee</label>
+                                        <input type="text" class="form-control" id="sma-fee" v-model="smaFee" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group
+                                    ">
+                                        <label for="best-rate-protocols">Best Rate Protocols</label>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Token Symbol</th>
+                                                        <th>Token Address</th>
+                                                        <th>Best Rate Protocol</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="protocol in bestRateProtocols" :key="protocol.tokenSymbol">
+                                                        <td>{{ protocol.tokenSymbol }}</td>
+                                                        <td>{{ protocol.tokenAddress }}</td>
+                                                        <td>{{ protocol.bestRateProtocol }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
