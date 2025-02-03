@@ -27,6 +27,10 @@ export default {
 
         this.oracleAddress = addresses.oracle;
         this.managerAdminAddress = addresses.managerAdmin;
+
+        let oracleData = await this.getOracleData();
+        this.smaFee = oracleData.fee;
+        this.bestRateProtocols = oracleData.bestRateProtocols;
     },
     methods: {
         async setAddresses() {

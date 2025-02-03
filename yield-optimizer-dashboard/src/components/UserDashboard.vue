@@ -4,6 +4,7 @@ import SMAFactoryInterface from '@/contracts/interfaces/SMAFactoryInterface.js';
 // Components
 import SMAFactory from './items/forms/SMAFactory.vue';
 import SMA from './items/forms/SMA.vue';
+import SMAOracleView from './items/views/contracts/SMAOracleView.vue';
 
 import { config } from '@/utils/configs/chainConfig.js'
 
@@ -74,6 +75,13 @@ export default {
 
 <template>
     <div id="dashboard">
+        <div class="row" v-if="showSMA">
+            <div class="col">
+                <div class="card" title="SMA Oracle">
+                    <SMAOracleView/>
+                </div>
+            </div>
+        </div>
         <div class="row" v-if="showFactory">
             <div class="col">
                 <div class="card" title="Deploy SMA">
