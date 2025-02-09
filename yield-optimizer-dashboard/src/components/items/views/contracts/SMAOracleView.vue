@@ -5,9 +5,9 @@ import SMAManagerAdminInterface from '@/contracts/interfaces/SMAManagerAdminInte
 
 import { getAccount } from '@wagmi/core'
 
-import { config } from '@/utils/configs/chainConfig.js'
-import { ethers } from 'ethers';
-import { c } from 'vite/dist/node/types.d-aGj9QkWt';
+import { config } from '@/utils/configs/chainConfig.js';
+
+import { ethers } from "ethers";
 
 // TODO: Consider replacing best rate protocol func call with api call if no account is found
 export default {
@@ -74,9 +74,10 @@ export default {
                 );
 
                 let allowedBaseTokens = await managerAdminInterface.getBaseTokens();
+                console.log("ALLOWED TOKENS: ", allowedBaseTokens);
                 let tokenInfo = [];
                 for (let i = 0; i < allowedBaseTokens.length; i++) {
-                    tokenInfo.push({tokenAddress: allowedBaseTokens[i][0], tokenSymbol: allowedBaseTokens[i][1]});
+                    tokenInfo.push({tokenAddress: allowedBaseTokens[i].tokenAddress, tokenSymbol: allowedBaseTokens[i].tokenSymbol});
                 }
 
                 const smaOracleInterface = new SMAOracleInterface(
@@ -85,17 +86,20 @@ export default {
 
                 let bestRateProtocols = []
                 for (let i = 0; i < tokenInfo.length; i++) {
-                    let bestRateProtocol = await smaOracleInterface.getBestRateProtocol(tokenInfo[i].tokenAddress);
+                    let bestRateProtocol = await smaOracleInterface.getBestRateProtocolName(tokenInfo[i].tokenAddress);
                     bestRateProtocols.push({
                         tokenSymbol: tokenInfo[i].tokenSymbol,
                         tokenAddress: tokenInfo[i].tokenAddress, 
                         bestRateProtocol: bestRateProtocol
                     });
                 }
-                console.log(bestRateProtocols);
+                console.log("BEST RATES: ", bestRateProtocols);
 
                 let feeGwei = await smaOracleInterface.getFee();
-                let fee = ethers.utils.formatUnits(feeGwei, 'gwei');
+                console.log("FEE: ", ethers.toBigInt(feeGwei));
+                
+                let fee = ethers.formatEther(feeGwei);
+                console.log("FEE ETHER: ", fee);
 
                 console.log(fee);
                 this.isBusy = false;
@@ -149,34 +153,31 @@ export default {
                                 <div class="col-12">
                                     <div class="form-group
                                     ">
-                                        <label for="sma-fee">SMA Fee</label>
+                                        <label for="sma-fee">SMA Fee (ETH)</label>
                                         <input type="text" class="form-control" id="sma-fee" v-model="smaFee" readonly>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-12">
-                                    <div class="form-group
-                                    ">
+                                    <div class="form-group">
                                         <label for="best-rate-protocols">Best Rate Protocols</label>
-                                        <div class="table-responsive">
-                                            <table class="table table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Token Symbol</th>
-                                                        <th>Token Address</th>
-                                                        <th>Best Rate Protocol</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="protocol in bestRateProtocols" :key="protocol.tokenSymbol">
-                                                        <td>{{ protocol.tokenSymbol }}</td>
-                                                        <td>{{ protocol.tokenAddress }}</td>
-                                                        <td>{{ protocol.bestRateProtocol }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Token Symbol</th>
+                                                    <th scope="col">Token Address</th>
+                                                    <th scope="col">Best Rate Protocol</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="protocol in bestRateProtocols">
+                                                    <td>{{ protocol.tokenSymbol }}</td>
+                                                    <td>{{ protocol.tokenAddress }}</td>
+                                                    <td>{{ protocol.bestRateProtocol }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>

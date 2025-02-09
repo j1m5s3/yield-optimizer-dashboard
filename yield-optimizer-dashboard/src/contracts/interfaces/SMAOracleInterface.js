@@ -56,7 +56,7 @@ class SMAOracleInterface {
             {
                 abi: this.abi, 
                 address: this.address, 
-                functionName: "fee"
+                functionName: "getETHFee"
             }
         );
 

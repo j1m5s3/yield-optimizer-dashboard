@@ -16,7 +16,7 @@ console.log("DASH");
 
 export default {
     name: 'Dashboard',
-    components: {SMAFactory, SMA},
+    components: {SMAFactory, SMA, SMAOracleView},
     data() {
         return {
             activeBots: [],
@@ -78,7 +78,7 @@ export default {
         <div class="row" v-if="showSMA">
             <div class="col">
                 <div class="card" title="SMA Oracle">
-                    <SMAOracleView/>
+                    <SMAOracleView />
                 </div>
             </div>
         </div>
