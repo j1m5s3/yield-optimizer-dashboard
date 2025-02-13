@@ -15,7 +15,7 @@ export default {
             isBusy: false,
             assetAddresses: [],
             clientAddress: '',
-            smaAddress: this.address,
+            smaAddress: this.contractAddress,
         };
     },
     async mounted() {
@@ -32,25 +32,17 @@ export default {
                 return;
             }
             console.log(account);
-
+            
             const smaInterface = new SMAInterface(
                 account.chain.name, account.address, config, this.smaAddress
             );
 
-            const clientAddress = await smaInterface.getClientAddress();
-            if (!clientAddress) {
-                console.error('Client Address not found');
-                return;
-            }
-
-            this.clientAddress = clientAddress;
-            console.log("Client Address: ", this.clientAddress);
-
             const rawAssetBalances = await smaInterface.getAssetBalances();
-            if (!assetBalances) {
+            if (!rawAssetBalances) {
                 console.error('Asset Balances not found');
                 return;
             }
+            console.log("Raw Asset Balances: ", rawAssetBalances);
 
             let assetBalances = [];
             for (let i = 0; i < rawAssetBalances.length; i++) {
@@ -73,11 +65,22 @@ export default {
 }
 </script>
 <template>
-    <div>
-        <div v-if="isBusy" class="loader">Loading...</div>
-        <div v-else>
-            <div v-for="asset in assetAddresses" :key="asset.address">
-                <p>{{ asset.symbol }}: {{ asset.balance }}</p>
-            </div>
+    <form action="#" @submit.prevent="" @reset="resetForm" v-if="!isBusy">
+        <div class="form-group">
+            <label for="clientAddress">Client Address</label>
+            <input type="text" class="form-control" id="clientAddress" v-model="clientAddress" readonly>
         </div>
-    </div>
+        <div class="form-group">
+            <label for="smaAddress">SMA Address</label>
+            <input type="text" class="form-control" id="smaAddress" v-model="smaAddress" readonly>
+        </div>
+        <div class="form-group" v-for="asset in assetBalances" :key="asset.address">
+            <label for="assetAddress">Asset Address</label>
+            <input type="text" class="form-control" id="assetAddress" v-model="asset.address" readonly>
+            <label for="assetSymbol">Asset Symbol</label>
+            <input type="text" class="form-control" id="assetSymbol" v-model="asset.symbol" readonly>
+            <label for="assetBalance">Asset Balance</label>
+            <input type="text" class="form-control" id="assetBalance" v-model="asset.balance" readonly>
+        </div>
+    </form>
+</template>

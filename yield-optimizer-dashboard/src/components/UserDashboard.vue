@@ -4,6 +4,7 @@ import SMAFactoryInterface from '@/contracts/interfaces/SMAFactoryInterface.js';
 // Components
 import SMAFactory from './items/forms/SMAFactory.vue';
 import SMA from './items/forms/SMA.vue';
+import SMAView from './items/views/contracts/SMAView.vue';
 import SMAOracleView from './items/views/contracts/SMAOracleView.vue';
 
 import { config } from '@/utils/configs/chainConfig.js'
@@ -16,7 +17,7 @@ console.log("DASH");
 
 export default {
     name: 'Dashboard',
-    components: {SMAFactory, SMA, SMAOracleView},
+    components: {SMAFactory, SMA, SMAOracleView, SMAView},
     data() {
         return {
             activeBots: [],
@@ -57,6 +58,7 @@ export default {
                 showSMA = false;
                 showFactory = true;
             }
+            console.log("SMA ADDRESS: ", smaAddress);
 
             const dashboardData = {
                 smaAddress: smaAddress,
@@ -92,6 +94,7 @@ export default {
         <div class="row" v-if="showSMA">
             <div class="col">
                 <div class="card" title="SMA">
+                    <SMAView :contractAddress="smaAddress" />
                     <SMA :contractAddress="smaAddress" />
                 </div>
             </div>
