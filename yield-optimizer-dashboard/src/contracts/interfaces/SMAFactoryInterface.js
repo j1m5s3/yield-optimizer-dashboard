@@ -63,7 +63,7 @@ class SMAFactoryInterface {
     }
 
     // Deploy an SMA contract for a given client
-    deploySMA = async (prospectiveClientAddress) => {
+    deploySMA = async (prospectiveClientAddress, fee) => {
         const data = await writeContract(
             this.config,
             {
@@ -71,6 +71,7 @@ class SMAFactoryInterface {
                 address: this.address, 
                 functionName: "deploySMA",
                 args: [prospectiveClientAddress],
+                value: fee,
                 account: this.account
             }
         );

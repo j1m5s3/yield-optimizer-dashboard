@@ -11,6 +11,8 @@ import { config } from '@/utils/configs/chainConfig.js'
 
 import { getAccount } from '@wagmi/core'
 
+import { ethers } from "ethers";
+
 //import { until } from "@vueuse/core";
 
 console.log("DASH");
@@ -50,13 +52,18 @@ export default {
             );
 
             let smaAddress = await smaFactoryInterface.getClientSMAAddress(account.address);
-            let showSMA = true;
+            
+            let showSMA = false;
             let showFactory = false;
-            if (!smaAddress) {
+            if (!smaAddress || smaAddress == ethers.ZeroAddress) {
                 console.error('SMA Address not found');
                 smaAddress = '';
                 showSMA = false;
                 showFactory = true;
+            }
+            else {
+                showSMA = true;
+                showFactory = false;
             }
             console.log("SMA ADDRESS: ", smaAddress);
 

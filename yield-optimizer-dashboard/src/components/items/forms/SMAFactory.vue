@@ -65,6 +65,7 @@ export default {
             );
 
             const smaAddress = await smaFactoryInterface.getClientSMAAddress(account.address);
+            console.log("SMA ADDRESS: ", smaAddress);
             
             return {factoryAddress: smaFactoryAddress, sma: smaAddress};
         },
