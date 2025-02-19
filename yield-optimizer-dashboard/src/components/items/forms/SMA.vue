@@ -5,31 +5,37 @@ import SMAFactoryInterface from '@/contracts/interfaces/SMAFactoryInterface.js';
 import { getAccount } from '@wagmi/core';
 import { config } from '@/utils/configs/chainConfig.js';
 
-const smaInterface = new SMAInterface();
-
 export default {
     props: {
-        contractAddress: String
+        contractAddress: String,
+        allowedBaseTokens: Array,
     },
     data() {
         return {
             isBusy: false,
             assetAddress: '',
             clientAddress: '',
-            smaAddress: this.address,
+            smaAddress: this.contractAddress,
+            allowedBaseTokens: this.allowedBaseTokens,
             amount: 0,
             txnReceipt: null,
         };
     },
-    async mounted() {
-        console.log("MOUNT");
-        //console.log("EVENTS: ", events);
-        this.smaAddress = this.contractAddress;
-        //const userSMAData = await this.userSMAData();
-    },
     methods: {
         async submitTransfer(transferType) {
             console.log("transferType: ", transferType);
+
+            const account = getAccount(config);
+            if (!account) {
+                console.error('Account not found');
+                return;
+            }
+            console.log(account);
+
+            const smaInterface = new SMAInterface(
+                account.chain.name, account.address, config, this.smaAddress
+            );
+
             this.isBusy = true;
             if (transferType === 'toClient') {
                 this.txnReceipt = await smaInterface.transferFromSMA(this.assetAddress, this.amount);
@@ -42,20 +48,6 @@ export default {
             this.amount = 0;
             this.assetAddress = '';
             console.log('reset');
-        },
-        async userSMAData() {
-            const account = getAccount(config);
-            if (!account) {
-                console.error('Account not found');
-                return;
-            }
-            console.log(account);
-
-            const smaFactoryInterface = new SMAFactoryInterface(
-                    account.chain.name, account.address, config
-                );
-            
-            const smaAddress = await smaFactoryInterface.getClientSMAAddress(account.address);
         }
     },
 };

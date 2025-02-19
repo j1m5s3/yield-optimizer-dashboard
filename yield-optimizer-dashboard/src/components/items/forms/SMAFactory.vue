@@ -1,6 +1,5 @@
 <script>
 import SMAFactoryInterface from '@/contracts/interfaces/SMAFactoryInterface.js';
-import SMAAddressProviderInterface from '@/contracts/interfaces/SMAAddressProviderInterface';
 
 import { getAccount } from '@wagmi/core'
 
@@ -8,27 +7,23 @@ import { config } from '@/utils/configs/chainConfig.js'
 
 //v-if="!isBusy"
 export default {
+    props: {
+        contractAddress: String
+    },
     data() {
         return {
             isBusy: false,
             clientAddress: '',
-            smaFactoryAddress: '',
-            smaAddress: '',
+            smaFactoryAddress: this.contractAddress,
             txnReceipt: null,
         };
-    },
-    async mounted() {
-        let addresses = await this.setAddresses();
-
-        this.smaFactoryAddress = addresses.factoryAddress;
-        this.smaAddress = addresses.sma;
     },
     methods: {
         async submitForm() {
             try {
                 this.isBusy = true;
                 const account = getAccount(config);
-                if (!account || this.smaAddress !== '') {
+                if (!account) {
                     console.error('Account not found');
                     return;
                 }
@@ -46,28 +41,6 @@ export default {
                 console.error(error);
                 this.isBusy = false;
             }
-        },
-        async getAddresses() {
-            const account = getAccount(config);
-            if (!account) {
-                console.error('Account not found');
-                return {factoryAddress: '', sma: ''};
-            }
-            console.log(account);
-
-            const smaAddressProviderInterface = new SMAAddressProviderInterface(
-                account.chain.name, account.address, config
-            );
-            const smaFactoryAddress = await smaAddressProviderInterface.getSMAFactoryAddress();
-
-            const smaFactoryInterface = new SMAFactoryInterface(
-                    account.chain.name, account.address, config, smaFactoryAddress
-            );
-
-            const smaAddress = await smaFactoryInterface.getClientSMAAddress(account.address);
-            console.log("SMA ADDRESS: ", smaAddress);
-            
-            return {factoryAddress: smaFactoryAddress, sma: smaAddress};
         },
         resetForm() {
             console.log('reset');
