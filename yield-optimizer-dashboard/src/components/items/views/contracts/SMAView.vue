@@ -45,18 +45,21 @@ export default {
 
             let assetBalances = [];
             for (let i = 0; i < rawAssetBalances.length; i++) {
-                if (rawAssetBalances[i].tokenSymbol == 'USDC') {
+                if (rawAssetBalances[i].decimals < 18) {
                     assetBalances.push({
-                    address: rawAssetBalances[i].tokenAddress,
-                    symbol: rawAssetBalances[i].tokenSymbol,
-                    balance: ethers.formatEther(rawAssetBalances[i].balance) / 10 ** 6 
-                });
+                        address: rawAssetBalances[i].tokenAddress,
+                        symbol: rawAssetBalances[i].tokenSymbol,
+                        balance: ethers.formatEther(rawAssetBalances[i].balance) / (10 ** rawAssetBalances[i].decimals)
+                    });
                 }
-                assetBalances.push({
-                    address: rawAssetBalances[i].tokenAddress,
-                    symbol: rawAssetBalances[i].tokenSymbol,
-                    balance: ethers.formatEther(rawAssetBalances[i].balance)
-                });
+                else {
+                    assetBalances.push({
+                        address: rawAssetBalances[i].tokenAddress,
+                        symbol: rawAssetBalances[i].tokenSymbol,
+                        balance: ethers.formatEther(rawAssetBalances[i].balance)
+                    });
+                }
+
             }
             return assetBalances;
         },

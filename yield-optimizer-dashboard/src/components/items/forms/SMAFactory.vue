@@ -5,16 +5,20 @@ import { getAccount } from '@wagmi/core'
 
 import { config } from '@/utils/configs/chainConfig.js'
 
+import { ethers } from "ethers";
+
 //v-if="!isBusy"
 export default {
     props: {
-        contractAddress: String
+        contractAddress: String,
+        smaFee: String
     },
     data() {
         return {
             isBusy: false,
             clientAddress: '',
             smaFactoryAddress: this.contractAddress,
+            smaFee: this.smaFee,
             txnReceipt: null,
         };
     },
@@ -33,8 +37,9 @@ export default {
                     account.chain.name, account.address, config, this.smaFactoryAddress
                 );
 
-               //debugger;
-                this.txnReceipt = await smaFactoryInterface.deploySMA(account.address);
+                //debugger;
+                let feeGwei = ethers.parseEther(this.smaFee);
+                this.txnReceipt = await smaFactoryInterface.deploySMA(account.address, feeGwei);
                 console.log(this.txnReceipt);
                 this.isBusy = false;
             } catch (error) {
@@ -52,6 +57,10 @@ export default {
 
 <template>
     <form @submit="submitForm" @reset="resetForm" v-if="!isBusy">
+        <div class="form-group">
+            <label for="smaFee">SMA Fee</label>
+            <input type="number" id="smaFee" v-model="smaFee" class="form-control" required>
+        </div>
         <div id="sma-deploy-row" class="row">
             <div class="col">
                 <button type="submit" variant="primary"> Deploy SMA </button>
@@ -71,7 +80,8 @@ export default {
 
 button {
     border-radius: 10px;
-    background-color: #4CAF50; /* Green */
+    background-color: #4CAF50;
+    /* Green */
     border: none;
     color: white;
     text-align: center;
@@ -88,5 +98,4 @@ button {
 button:hover {
     background-color: #45a049;
 }
-
 </style>

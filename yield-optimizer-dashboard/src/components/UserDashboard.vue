@@ -86,7 +86,6 @@ export default {
             let showFactory;
             if (!factoryData.smaAddress || factoryData.smaAddress == ethers.ZeroAddress) {
                 console.error('SMA Address not found');
-                smaAddress = '';
                 showSMA = false;
                 showFactory = true;
             }
@@ -168,7 +167,7 @@ export default {
         <div class="row" v-if="showFactory">
             <div class="col">
                 <div class="card" title="Deploy SMA">
-                    <SMAFactory :contractAddress="factoryAddress"/>
+                    <SMAFactory :contractAddress="factoryAddress" :sma-fee="fee"/>
                 </div>
             </div>
         </div>
