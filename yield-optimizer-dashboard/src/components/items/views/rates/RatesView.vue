@@ -335,8 +335,6 @@ export default {
                     </li>
                 </ul>
             </div>
-        </div>
-        <div id="data-options-single-select" class="row">
             <div id="chainSelect" class="col">
                 <select class="dropdown" v-bind:value="selectedChain" @change="onChainChange">
                     <option v-for="(chain, index) in chains" :key="index" :value="chain">{{ chain }}</option>
@@ -418,5 +416,23 @@ canvas {
     justify-content: center;
     align-items: center;
     margin: 0 auto;
+}
+
+h1 {
+    padding: 1rem;
+}
+
+ul {
+    background-color: gray;
+}
+
+select {
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px;
+}
+
+input[type="checkbox"] {
+    margin-left: 5px;
 }
 </style>

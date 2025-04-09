@@ -188,10 +188,18 @@ export default {
     border-radius: 10px;
 }
 
+#sma-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
 .card {
-    border: 10px solid #000; /* Black border */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Drop shadow */
     font-weight: bold; /* Bold text */
     color: white; /* White text */
+    margin: 0 2rem 0 0;
+    background-color: gray;
 }
 </style>

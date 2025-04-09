@@ -69,9 +69,8 @@ watch(acct.status, (newStatus, oldStatus) => {
     <main>
       <div class="container-fluid">
         <div id="w3-button" class="row justify-content-end">
-          <div clss="col-2"></div>
           <div class="col-2">
-            <w3m-button size="sm" />
+            <w3m-button size="md" />
           </div>
         </div>
         <div class="row">
@@ -101,6 +100,12 @@ header {
   margin: 0 auto 2rem;
 }
 
+.card {
+  margin: 20px;
+  border-radius: 10px;
+  background-color: gray;
+}
+
 @media (min-width: 1024px) {
   header {
     display: flex;
@@ -122,9 +127,23 @@ header {
 
 main {
   padding-top: 4rem;
+  margin: auto;
 }
 
 w3m-button {
   padding: 1rem;
+}
+
+h1 {
+    padding: 1rem;
+}
+
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  align-items: center;
 }
 </style>

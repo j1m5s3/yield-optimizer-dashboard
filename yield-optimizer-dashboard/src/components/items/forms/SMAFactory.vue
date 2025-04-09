@@ -59,14 +59,11 @@ export default {
     <form @submit="submitForm" @reset="resetForm" v-if="!isBusy">
         <div class="form-group">
             <label for="smaFee">SMA Fee</label>
-            <input type="number" id="smaFee" v-model="smaFee" class="form-control" required>
+            <input type="number" id="smaFee" v-model="smaFee" class="form-control"  readonly required>
         </div>
         <div id="sma-deploy-row" class="row">
             <div class="col">
                 <button type="submit" variant="primary"> Deploy SMA </button>
-            </div>
-            <div class="col">
-                <p>Deploy a new SMA</p>
             </div>
         </div>
     </form>
@@ -76,6 +73,13 @@ export default {
 #sma-deploy-row {
     margin: 20px;
     border-radius: 10px;
+}
+
+form {
+    margin: 20px;
+    border-radius: 10px;
+    padding: 20px;
+    background-color: gray;
 }
 
 button {

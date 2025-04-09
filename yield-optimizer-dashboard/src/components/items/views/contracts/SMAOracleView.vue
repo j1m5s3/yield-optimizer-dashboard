@@ -48,7 +48,8 @@ export default {
                                 <div class="col-12">
                                     <div class="form-group">
                                         <label for="oracle-address">Oracle Address</label>
-                                        <input type="text" class="form-control" id="oracle-address" v-model="oracleAddress" readonly>
+                                        <input type="text" class="form-control" id="oracle-address"
+                                            v-model="oracleAddress" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -57,7 +58,10 @@ export default {
                                     <div class="form-group
                                     ">
                                         <label for="sma-fee">SMA Fee (ETH)</label>
-                                        <input type="text" class="form-control" id="sma-fee" v-model="smaFee" readonly>
+                                        <label id="ETH-units">
+                                            ETH: 
+                                            <input type="text" class="form-control" id="sma-fee" v-model="smaFee" readonly>
+                                        </label>                                        
                                     </div>
                                 </div>
                             </div>
