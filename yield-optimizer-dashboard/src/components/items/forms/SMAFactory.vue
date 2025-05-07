@@ -57,10 +57,6 @@ export default {
 
 <template>
     <form @submit="submitForm" @reset="resetForm" v-if="!isBusy">
-        <div class="form-group">
-            <label for="smaFee">SMA Fee</label>
-            <input type="number" id="smaFee" v-model="smaFee" class="form-control"  readonly required>
-        </div>
         <div id="sma-deploy-row" class="row">
             <div class="col">
                 <button type="submit" variant="primary"> Deploy SMA </button>

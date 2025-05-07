@@ -9,6 +9,7 @@ import SMAFactory from './items/forms/SMAFactory.vue';
 import SMA from './items/forms/SMA.vue';
 import SMAView from './items/views/contracts/SMAView.vue';
 import SMAOracleView from './items/views/contracts/SMAOracleView.vue';
+import SMAManagerAdminView from './items/views/contracts/SMAManagerAdminView.vue';
 
 import { config } from '@/utils/configs/chainConfig.js'
 
@@ -22,17 +23,19 @@ console.log("DASH");
 
 export default {
     name: 'Dashboard',
-    components: {SMAFactory, SMA, SMAOracleView, SMAView},
+    components: {SMAFactory, SMA, SMAOracleView, SMAView, SMAManagerAdminView},
     data() {
         return {
             activeBots: [],
             isBusy: false,
             factoryAddress: '',
             oracleAddress: '',
+            managerAdminAddress: '',
             smaAddress: '',
             showSMA: false,
             showFactory: false,
             fee: '',
+            subFee: '',
             bestRateProtocols: [],
             allowedBaseTokens: [],
         }
@@ -49,10 +52,12 @@ export default {
         else {
             this.factoryAddress = dashboardData.factoryAddress;
             this.oracleAddress = dashboardData.oracleAddress;
+            this.managerAdminAddress = dashboardData.managerAdminAddress;
             this.smaAddress = dashboardData.smaAddress;
             this.showSMA = dashboardData.showSMA;
             this.showFactory = dashboardData.showFactory;
             this.fee = dashboardData.fee;
+            this.subFee = dashboardData.subFee;
             this.bestRateProtocols = dashboardData.bestRateProtocols;
             this.allowedBaseTokens = dashboardData.allowedBaseTokens;
         }
@@ -80,7 +85,10 @@ export default {
             let managerAdminAddress = await smaAddressProviderInterface.getManagerAdminAddress();
 
             let factoryData = await this._fetchFactoryData(account, factoryAddress);
-            let oracleData = await this._fetchOracleData(account, oracleAddress, managerAdminAddress);
+            let managerAdminData = await this._fetchManagerAdminData(account, managerAdminAddress);
+            let oracleData = await this._fetchOracleData(
+                account, oracleAddress, managerAdminData.allowedBaseTokens
+            );
             
             let showSMA;
             let showFactory;
@@ -97,10 +105,12 @@ export default {
             const dashboardData = {
                 factoryAddress: factoryAddress,
                 oracleAddress: oracleAddress,
+                managerAdminAddress: managerAdminAddress,
                 smaAddress: factoryData.smaAddress,
                 fee: oracleData.fee,
+                subFee: managerAdminData.subFee,
                 bestRateProtocols: oracleData.bestRateProtocols,
-                allowedBaseTokens: oracleData.allowedBaseTokens,
+                allowedBaseTokens: managerAdminData.allowedBaseTokens,
                 showSMA: showSMA,
                 showFactory: showFactory,
             }
@@ -119,16 +129,10 @@ export default {
 
             return {smaAddress: smaAddress};
         },
-        async _fetchOracleData(account, oracleAddress, managerAdminAddress) {
-            const managerAdminInterface = new SMAManagerAdminInterface(
-                    account.chain.name, account.address, config, managerAdminAddress
-            );
-
+        async _fetchOracleData(account, oracleAddress, allowedBaseTokens) {
             const smaOracleInterface = new SMAOracleInterface(
                 account.chain.name, account.address, config, oracleAddress
             );
-
-            let allowedBaseTokens = await managerAdminInterface.getBaseTokens();
 
             let bestRateProtocols = []
             for (let i = 0; i < allowedBaseTokens.length; i++) {
@@ -150,6 +154,21 @@ export default {
 
             return {fee: fee, bestRateProtocols: bestRateProtocols, allowedBaseTokens: allowedBaseTokens};
         },
+        async _fetchManagerAdminData(account, managerAdminAddress) {
+            const managerAdminInterface = new SMAManagerAdminInterface(
+                    account.chain.name, account.address, config, managerAdminAddress
+            );
+
+            let subFee = await managerAdminInterface.getSubscriptionFee();
+            console.log("SUBSCRIPTION FEE: ", subFee);
+            let formattedFee = ethers.formatEther(subFee);
+            let fee = formattedFee * 10**18;
+            let allowedBaseTokens = await managerAdminInterface.getBaseTokens();
+
+            console.log("ALLOWED BASE TOKENS: ", allowedBaseTokens);
+
+            return {subFee: fee, allowedBaseTokens: allowedBaseTokens};
+        },
     }
 }
 </script>
@@ -157,10 +176,11 @@ export default {
 
 <template>
     <div id="dashboard">
-        <div class="row" v-if="showSMA">
+        <div class="row" v-if="showFactory">
             <div class="col">
-                <div class="card" title="SMA Oracle">
+                <div class="card" title="SMA Fees and Rates">
                     <SMAOracleView :contractAddress="oracleAddress" :bestRateProtocols="bestRateProtocols" :deployFee="fee"/>
+                    <SMAManagerAdminView :contractAddress="managerAdminAddress" :subFee="subFee"/>
                 </div>
             </div>
         </div>

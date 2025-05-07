@@ -62,26 +62,19 @@ watch(acct.status, (newStatus, oldStatus) => {
 <template>
   <div id="app">
     <header>
-      <div class="wrapper">
-        <h1>Yield Optimizer Dashboard</h1>
+      <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center">
+          <h1>Yield Optimizer Dashboard</h1>
+          <w3m-button size="md" />
+        </div>
       </div>
     </header>
     <main>
       <div class="container-fluid">
-        <div id="w3-button" class="row justify-content-end">
-          <div class="col-2">
-            <w3m-button size="md" />
+        <div class="row mt-4">
+          <div class="col-12">
+            <UserDashboard v-model="showDashboard" v-if="showDashboard" />
           </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            <div class="card" title="Rates">
-              <RatesView />
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <UserDashboard v-model="showDashboard" v-if="showDashboard" />
         </div>
       </div>
     </main>
@@ -89,61 +82,17 @@ watch(acct.status, (newStatus, oldStatus) => {
 </template>
 
 
-<style scoped>
-header {
-  line-height: 1.5;
-  z-index: 9;
-}
+<style>
+@import './assets/main.css';
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-.card {
-  margin: 20px;
-  border-radius: 10px;
-  background-color: gray;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-    position: fixed;
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+#app {
+  min-height: 100vh;
+  background-color: var(--background-color);
 }
 
 main {
-  padding-top: 4rem;
-  margin: auto;
+  padding-top: 80px;
 }
 
-w3m-button {
-  padding: 1rem;
-}
-
-h1 {
-    padding: 1rem;
-}
-
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  align-items: center;
-}
+/* Remove the old styles that are now in main.css */
 </style>

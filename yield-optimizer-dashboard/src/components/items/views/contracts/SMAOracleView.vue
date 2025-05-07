@@ -9,6 +9,19 @@ import { config } from '@/utils/configs/chainConfig.js';
 
 import { ethers } from "ethers";
 
+/**
+ * * SMAOracleView component
+ * * This component is used to display the details of the SMA Oracle contract.
+ * * * It shows the oracle address, SMA fee, and the best rate protocols.
+ * * * @component
+ * * @example
+ * * <SMAOracleView contractAddress="0x1234567890abcdef" bestRateProtocols="0xabcdef1234567890" deployFee="0.01" />
+ * * @param {String} contractAddress - The address of the SMA Oracle contract.
+ * * * @param {Array} bestRateProtocols - The list of best rate protocols.
+ * * * @param {String} deployFee - The deployment fee for the SMA Oracle contract.
+ * * @returns {Object} - The component object.
+ */
+
 // TODO: Consider replacing best rate protocol func call with api call if no account is found
 export default {
     props: {
@@ -32,11 +45,6 @@ export default {
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <h1>Oracle</h1>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
@@ -53,13 +61,11 @@ export default {
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
+                            <div class="row mt-4">
                                 <div class="col-12">
-                                    <div class="form-group
-                                    ">
+                                    <div class="form-group">
                                         <label for="sma-fee">SMA Fee (ETH)</label>
-                                        <label id="ETH-units">
-                                            ETH: 
+                                        <label id="ETH-units"> 
                                             <input type="text" class="form-control" id="sma-fee" v-model="smaFee" readonly>
                                         </label>                                        
                                     </div>
@@ -95,3 +101,71 @@ export default {
         </div>
     </div>
 </template>
+
+<style scoped>
+#oracle-view {
+    color: var(--text-primary);
+}
+
+#oracle-view h2 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+#oracle-view label {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+#oracle-view .form-control {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 1rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+#oracle-view .form-control:read-only {
+    background-color: var(--card-background);
+    color: var(--text-primary);
+}
+
+#oracle-view .table {
+    color: #000000;
+    background-color: var(--card-background);
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+#oracle-view .table th {
+    color: #ffffff;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+    padding: 1rem;
+    text-align: left;
+}
+
+#oracle-view .table td {
+    color: #000000;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem;
+    font-size: 0.95rem;
+}
+
+#oracle-view .table tr:hover {
+    background-color: var(--hover-color);
+}
+
+#oracle-view .table tr:hover td {
+    color: #000000;
+}
+
+.form-group {
+    margin-bottom: 2rem;
+}
+</style>

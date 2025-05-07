@@ -44,6 +44,24 @@ export default {
             }
             this.isBusy = false;
         },
+        async invest(asset, fromProto, toProto) {
+            console.log("invest: ", asset, fromProto, toProto);
+
+            const account = getAccount(config);
+            if (!account) {
+                console.error('Account not found');
+                return;
+            }
+            console.log(account);
+
+            const smaInterface = new SMAInterface(
+                account.chain.name, account.address, config, this.smaAddress
+            );
+
+            this.isBusy = true;
+            this.txnReceipt = await smaInterface.invest(asset, fromProto, toProto);
+            this.isBusy = false;
+        },
         resetForm() {
             this.amount = 0;
             this.assetAddress = '';
