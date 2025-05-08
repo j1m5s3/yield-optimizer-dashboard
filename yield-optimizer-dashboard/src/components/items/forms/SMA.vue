@@ -969,7 +969,6 @@ select.form-control {
     background-size: contain;
     border: 1px solid var(--border-color);
     appearance: none;
-    color-adjust: exact;
     transition: background-position .15s ease-in-out;
 }
 
