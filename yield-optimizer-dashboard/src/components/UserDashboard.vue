@@ -214,10 +214,10 @@ export default {
             <div class="col">
                 <div class="footer">
                     <div class="social-links">
-                        <a href="https://www.linkedin.com/in/your-profile" target="_blank" class="social-link" title="LinkedIn">
+                        <a href="https://www.linkedin.com/in/your-profile" target="_blank" class="social-link linkedin" title="LinkedIn">
                             <img src="@/assets/linkedin.svg" alt="LinkedIn" class="social-icon">
                         </a>
-                        <a href="https://github.com/your-username" target="_blank" class="social-link" title="GitHub">
+                        <a href="https://github.com/your-username" target="_blank" class="social-link github" title="GitHub">
                             <img src="@/assets/github.svg" alt="GitHub" class="social-icon">
                         </a>
                     </div>
@@ -365,7 +365,7 @@ h3 {
     justify-content: center;
     color: var(--text-primary);
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -374,19 +374,29 @@ h3 {
 }
 
 .social-link:hover {
-    color: var(--primary-color);
     transform: translateY(-2px);
-    box-shadow: var(--shadow);
-    border-color: var(--primary-color);
+}
+
+.social-link.linkedin:hover {
+    background-color: #0077b5;
+    box-shadow: 0 0 15px rgba(0, 119, 181, 0.5);
+    border-color: #0077b5;
+}
+
+.social-link.github:hover {
+    background-color: #2ea44f;
+    box-shadow: 0 0 15px rgba(46, 164, 79, 0.5);
+    border-color: #2ea44f;
 }
 
 .social-icon {
     width: 24px;
     height: 24px;
     filter: var(--icon-filter);
+    transition: all 0.3s ease;
 }
 
 .social-link:hover .social-icon {
-    filter: var(--icon-filter-hover);
+    filter: brightness(0) invert(1);
 }
 </style>

@@ -448,8 +448,8 @@ export default {
                                         v-model="transferDirection"
                                         required
                                     >
-                                        <option value="toClient">From SMA to Client</option>
-                                        <option value="fromClient">From Client to SMA</option>
+                                        <option value="toClient">From SMA </option>
+                                        <option value="fromClient">To SMA</option>
                                     </select>
                                 </div>
                             </div>
@@ -621,6 +621,9 @@ export default {
                     <div class="row">
                         <div class="col-12">
                             <div class="form-group">
+                                <p class="management-description">
+                                    When enabled, an automated bot will actively manage your assets within the SMA, optimizing yields and rebalancing positions based on market conditions.
+                                </p>
                                 <button 
                                     class="btn toggle-button" 
                                     :class="isActiveManagement ? 'btn-danger' : 'btn-success'"
@@ -1216,5 +1219,12 @@ select.form-control {
 .toggle-button:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+
+.management-description {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
 }
 </style>
