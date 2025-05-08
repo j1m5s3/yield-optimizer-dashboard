@@ -35,8 +35,22 @@ export default {
             smaFee: this.deployFee,
             bestRateProtocols: this.bestRateProtocols,
             txnReceipt: null,
+            isCopied: false,
         };
-    }
+    },
+    methods: {
+        async copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                this.isCopied = true;
+                setTimeout(() => {
+                    this.isCopied = false;
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        },
+    },
 };
 </script>
 
@@ -56,8 +70,18 @@ export default {
                                 <div class="col-12">
                                     <div class="form-group">
                                         <label for="oracle-address">Oracle Address</label>
-                                        <input type="text" class="form-control" id="oracle-address"
-                                            v-model="oracleAddress" readonly>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" id="oracle-address"
+                                                v-model="oracleAddress" readonly>
+                                            <button 
+                                                class="btn btn-outline-primary btn-sm ms-2 copy-button" 
+                                                @click="copyToClipboard(oracleAddress)"
+                                                :title="isCopied ? 'Copied!' : 'Copy address'"
+                                            >
+                                                <i :class="['bi', isCopied ? 'bi-check-lg' : 'bi-clipboard']"></i>
+                                                <span class="ms-1">{{ isCopied ? 'Copied!' : 'Copy' }}</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -127,6 +151,7 @@ export default {
     font-size: 1rem;
     padding: 0.75rem;
     margin-top: 0.5rem;
+    height: 48px;
 }
 
 #oracle-view .form-control:read-only {
@@ -167,5 +192,37 @@ export default {
 
 .form-group {
     margin-bottom: 2rem;
+}
+
+.copy-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    height: 48px;
+    margin-top: 0.5rem;
+    min-width: 100px;
+}
+
+.copy-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.copy-button:active {
+    transform: translateY(0);
+}
+
+.ms-2 {
+    margin-left: 0.5rem;
+}
+
+.ms-1 {
+    margin-left: 0.25rem;
 }
 </style>

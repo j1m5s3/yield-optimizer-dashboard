@@ -29,18 +29,14 @@ console.log("EVENTS: ", events);
 const acct = useAccount();
 const showDashboard = ref(false);
 console.log("acct: ", acct);
-if (acct) {
-  console.log("ACCT");
-}
 
 watch(events, (newEvent, oldEvent) => {
   console.log(`EVENTS --> OLD ${oldEvent.data['event']} --> NEW ${newEvent.data['event']}`);
   if (newEvent.data['event'] == "CONNECT_SUCCESS") {
     console.log("EVENTS CONNECTED");
     showDashboard.value = true;
-  } else {
-    console.log(config.state.status);
-    console.log(config.storage);
+  } else if (newEvent.data['event'] == "DISCONNECT_SUCCESS") {
+    console.log("EVENTS DISCONNECTED");
     showDashboard.value = false;
   }
 });
@@ -64,7 +60,10 @@ watch(acct.status, (newStatus, oldStatus) => {
     <header>
       <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center">
-          <h1>Yield Optimizer Dashboard</h1>
+          <div class="d-flex align-items-center">
+            <img src="./assets/robot_trading_logo_cropped.png" alt="Logo" class="header-logo me-3" />
+            <h1>Yield Optimizer Dashboard</h1>
+          </div>
           <w3m-button size="md" />
         </div>
       </div>
@@ -94,5 +93,31 @@ main {
   padding-top: 80px;
 }
 
-/* Remove the old styles that are now in main.css */
+.header-logo {
+  height: 40px;
+  width: 40px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  padding: 2px;
+  background-color: var(--background-color);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .header-logo {
+    height: 32px;
+    width: 32px;
+  }
+  
+  header h1 {
+    font-size: 1.25rem;
+  }
+}
 </style>

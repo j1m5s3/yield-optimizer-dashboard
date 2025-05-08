@@ -38,6 +38,7 @@ export default {
             subFee: '',
             bestRateProtocols: [],
             allowedBaseTokens: [],
+            isOracleSectionCollapsed: false,
         }
     },
     async mounted() {
@@ -176,11 +177,21 @@ export default {
 
 <template>
     <div id="dashboard">
-        <div class="row" v-if="showFactory">
+        <div class="row" v-if="showFactory || showSMA">
             <div class="col">
-                <div class="card" title="SMA Fees and Rates">
-                    <SMAOracleView :contractAddress="oracleAddress" :bestRateProtocols="bestRateProtocols" :deployFee="fee"/>
-                    <SMAManagerAdminView :contractAddress="managerAdminAddress" :subFee="subFee"/>
+                <div class="card no-bottom-border" title="SMA Fees and Rates">
+                    <div class="card-header" @click="isOracleSectionCollapsed = !isOracleSectionCollapsed" style="cursor: pointer;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="mb-0">SMA Fees and Rates</h3>
+                            <i :class="['bi', isOracleSectionCollapsed ? 'bi-chevron-down' : 'bi-chevron-up']"></i>
+                        </div>
+                    </div>
+                    <div class="collapse" :class="{ 'show': !isOracleSectionCollapsed }">
+                        <div class="card-body">
+                            <SMAOracleView :contractAddress="oracleAddress" :bestRateProtocols="bestRateProtocols" :deployFee="fee"/>
+                            <SMAManagerAdminView :contractAddress="managerAdminAddress" :subFee="subFee"/>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -199,13 +210,27 @@ export default {
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col">
+                <div class="footer">
+                    <div class="social-links">
+                        <a href="https://www.linkedin.com/in/your-profile" target="_blank" class="social-link" title="LinkedIn">
+                            <img src="@/assets/linkedin.svg" alt="LinkedIn" class="social-icon">
+                        </a>
+                        <a href="https://github.com/your-username" target="_blank" class="social-link" title="GitHub">
+                            <img src="@/assets/github.svg" alt="GitHub" class="social-icon">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <style scoped>
 #dashboard {
-    margin: 20px;
-    border-radius: 10px;
+    margin: 2rem;
+    border-radius: 1rem;
 }
 
 #sma-form {
@@ -216,10 +241,152 @@ export default {
 }
 
 .card {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Drop shadow */
-    font-weight: bold; /* Bold text */
-    color: white; /* White text */
-    margin: 0 2rem 0 0;
-    background-color: gray;
+    box-shadow: var(--shadow);
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0 2rem 2rem 0;
+    background-color: var(--card-background);
+    width: 100%;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background-color: var(--card-background);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    cursor: pointer;
+}
+
+.card-header:hover {
+    background-color: var(--hover-color);
+}
+
+.card-body {
+    width: 100%;
+    padding: 1.5rem;
+}
+
+.collapse {
+    transition: all 0.3s ease;
+}
+
+.bi {
+    color: var(--text-primary);
+    transition: transform 0.3s ease;
+    font-size: 1.25rem;
+}
+
+.bi-chevron-down {
+    transform: rotate(0deg);
+}
+
+.bi-chevron-up {
+    transform: rotate(180deg);
+}
+
+h3 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.row {
+    margin-bottom: 2rem;
+}
+
+.row:last-child {
+    margin-bottom: 0;
+}
+
+/* Add smooth transitions for all interactive elements */
+.btn, .form-control, .card, .collapse {
+    transition: all 0.3s ease;
+}
+
+/* Add hover effects for interactive elements */
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    border-color: var(--primary-color);
+}
+
+/* Add loading state styles */
+.is-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Add responsive padding */
+@media (max-width: 768px) {
+    #dashboard {
+        margin: 1rem;
+    }
+    
+    .card {
+        margin: 0 0 1rem 0;
+    }
+}
+
+.no-bottom-border {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+}
+
+.footer {
+    margin-top: 2rem;
+    padding: 1rem;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+}
+
+.social-link:hover {
+    color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--primary-color);
+}
+
+.social-icon {
+    width: 24px;
+    height: 24px;
+    filter: var(--icon-filter);
+}
+
+.social-link:hover .social-icon {
+    filter: var(--icon-filter-hover);
 }
 </style>
