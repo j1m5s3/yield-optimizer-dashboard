@@ -1,6 +1,7 @@
 <script>
 import { SMAInterface } from '@/contracts/interfaces/SMAInterface.js';
-import SMAFactoryInterface from '@/contracts/interfaces/SMAFactoryInterface.js';
+import { ERC20Interface } from '@/contracts/interfaces/ERC20Interface.js';
+import { SMAFactoryInterface } from '@/contracts/interfaces/SMAFactoryInterface.js';
 import { ethers } from 'ethers';
 
 import { getAccount } from '@wagmi/core';
@@ -32,6 +33,7 @@ export default {
             // Active Management properties
             isActiveManagement: false,
             isActiveManagementCollapsed: false,
+            isActiveManagementLoading: false,
             // Balances section properties
             isBalancesCollapsed: false,
             balances: [],
@@ -60,16 +62,26 @@ export default {
                 account.chain.name, account.address, config, this.smaAddress
             );
 
+            const erc20Interface = new ERC20Interface(
+                account.chain.name, account.address, config, this.transferAssetAddress
+            );
+
             this.isTransferLoading = true;
             try {
                 if (this.transferDirection === 'toClient') {
                     this.txnReceipt = await smaInterface.transferFromSMA(this.transferAssetAddress, this.transferAmount);
                 } else {
+                    const allowance = await erc20Interface.allowance(account.address, this.smaAddress);
+
+                    if (allowance < this.transferAmount) {
+                        await erc20Interface.approve(this.smaAddress, this.transferAmount);
+                    }
+
                     this.txnReceipt = await smaInterface.transferFromClient(this.transferAssetAddress, this.transferAmount);
                 }
                 // Wait for transaction confirmation
                 if (this.txnReceipt) {
-                    await this.txnReceipt.wait();
+                    await this.txnReceipt;
                 }
             } catch (error) {
                 console.error('Error transferring:', error);
@@ -154,7 +166,7 @@ export default {
                 );
                 // Wait for transaction confirmation
                 if (this.txnReceipt) {
-                    await this.txnReceipt.wait();
+                    await this.txnReceipt;
                 }
             } catch (error) {
                 console.error('Error investing:', error);
@@ -173,14 +185,21 @@ export default {
                 account.chain.name, account.address, config, this.smaAddress
             );
 
-            this.isBusy = true;
+            this.isActiveManagementLoading = true;
             try {
                 this.txnReceipt = await smaInterface.setActiveManagement(!this.isActiveManagement);
+                console.log(this.txnReceipt);
+                // Wait for transaction confirmation
+                if (this.txnReceipt) {
+                    console.log("Waiting for transaction confirmation for active management");
+                    console.log(this.txnReceipt);
+                    await this.txnReceipt;
+                }
                 this.isActiveManagement = !this.isActiveManagement;
             } catch (error) {
                 console.error('Error toggling active management:', error);
             } finally {
-                this.isBusy = false;
+                this.isActiveManagementLoading = false;
             }
         },
         resetForm() {
@@ -628,9 +647,10 @@ export default {
                                     class="btn toggle-button" 
                                     :class="isActiveManagement ? 'btn-danger' : 'btn-success'"
                                     @click="toggleActiveManagement"
-                                    :disabled="isBusy"
+                                    :disabled="isActiveManagementLoading"
                                 >
-                                    {{ isActiveManagement ? 'DISABLE' : 'ENABLE' }}
+                                    <span v-if="isActiveManagementLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    {{ isActiveManagementLoading ? 'Processing...' : (isActiveManagement ? 'DISABLE' : 'ENABLE') }}
                                 </button>
                             </div>
                         </div>

@@ -170,6 +170,20 @@ export default {
 
             return {subFee: fee, allowedBaseTokens: allowedBaseTokens};
         },
+        async handleSMACreated(event) {
+            console.log('SMA Created:', event);
+            this.smaAddress = event.smaAddr;
+            this.showSMA = true;
+            this.showFactory = false;
+            
+            // Refresh dashboard data to get updated information
+            await this.fetchData();
+            
+            // Refresh the page after a short delay to ensure all data is updated
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        },
     }
 }
 </script>
@@ -198,13 +212,17 @@ export default {
         <div class="row" v-if="showFactory">
             <div class="col">
                 <div class="card" title="Deploy SMA">
-                    <SMAFactory :contractAddress="factoryAddress" :sma-fee="fee"/>
+                    <SMAFactory 
+                        :contractAddress="factoryAddress" 
+                        :sma-fee="fee"
+                        @sma-created="handleSMACreated"
+                    />
                 </div>
             </div>
         </div>
         <div class="row" v-if="showSMA">
             <div class="col">
-                <div class="card" title="SMA">
+                <div class="card no-bottom-border" title="SMA">
                     <SMAView :contractAddress="smaAddress" />
                     <SMA :contractAddress="smaAddress" :allowed-base-tokens="allowedBaseTokens"/>
                 </div>

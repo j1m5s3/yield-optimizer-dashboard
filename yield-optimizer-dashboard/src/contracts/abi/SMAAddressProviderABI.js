@@ -297,7 +297,7 @@ export const SMAAddressProviderABI = {
       }
     ],
       "addresses": {
-        "Sepolia": "0xDE45436683Cf52c26a1C8DB009CDeA6C3021c2fb",
+        "Sepolia": "0xE64863ab7b446c256a482090D3d1d6dcFcAE8431",
         "arbitrum_mainnet": "",
         "ethereum_mainnet": "",
     }
