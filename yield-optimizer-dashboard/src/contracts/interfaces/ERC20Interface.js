@@ -2,6 +2,8 @@
 
 import { ERC20ABI } from "../abi/ERC20ABI";
 
+import { readContract, writeContract } from "@wagmi/core";
+
 export class ERC20Interface {
     constructor(network, account, config, address=null) {
         this.config = config;
@@ -25,6 +27,26 @@ export class ERC20Interface {
         });
 
         return balance;
+    }
+
+    getDecimals = async () => {
+        let abi = [
+            {
+                type: 'function',
+                name: 'decimals',
+                stateMutability: 'view',
+                inputs: [],
+                outputs: [{ type: 'uint8' }],
+            }
+        ]
+
+        const decimals = await readContract(this.config, {
+            abi: abi,
+            address: this.address,
+            functionName: "decimals"
+        });
+
+        return decimals;
     }
 
     approve = async (spender, amount) => {

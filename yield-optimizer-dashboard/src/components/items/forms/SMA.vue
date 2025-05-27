@@ -4,7 +4,7 @@ import { ERC20Interface } from '@/contracts/interfaces/ERC20Interface.js';
 import { SMAFactoryInterface } from '@/contracts/interfaces/SMAFactoryInterface.js';
 import { ethers } from 'ethers';
 
-import { getAccount } from '@wagmi/core';
+import { getAccount, getBalance } from '@wagmi/core';
 import { config } from '@/utils/configs/chainConfig.js';
 
 export default {
@@ -66,18 +66,21 @@ export default {
                 account.chain.name, account.address, config, this.transferAssetAddress
             );
 
+            let decimals = await erc20Interface.getDecimals();
+            let transferAmount = Number(this.transferAmount) * 10**decimals;
+
             this.isTransferLoading = true;
             try {
                 if (this.transferDirection === 'toClient') {
-                    this.txnReceipt = await smaInterface.transferFromSMA(this.transferAssetAddress, this.transferAmount);
+                    this.txnReceipt = await smaInterface.transferFromSMA(this.transferAssetAddress, transferAmount);
                 } else {
                     const allowance = await erc20Interface.allowance(account.address, this.smaAddress);
 
                     if (allowance < this.transferAmount) {
-                        await erc20Interface.approve(this.smaAddress, this.transferAmount);
+                        await erc20Interface.approve(this.smaAddress, transferAmount);
                     }
 
-                    this.txnReceipt = await smaInterface.transferFromClient(this.transferAssetAddress, this.transferAmount);
+                    this.txnReceipt = await smaInterface.transferFromClient(this.transferAssetAddress, transferAmount);
                 }
                 // Wait for transaction confirmation
                 if (this.txnReceipt) {
@@ -87,6 +90,9 @@ export default {
                 console.error('Error transferring:', error);
             } finally {
                 this.isTransferLoading = false;
+                this.fetchAllBalances();
+                this.fetchTransactions();
+                this.resetForm();
             }
         },
         async invest(asset, fromProto, toProto) {
@@ -107,7 +113,7 @@ export default {
             this.txnReceipt = await smaInterface.invest(asset, fromProto, toProto);
             this.isBusy = false;
         },
-        async fetchMaxBalance() {
+        fetchMaxBalance() {
             if (!this.transferAssetAddress) {
                 console.error('No asset selected');
                 return;
@@ -119,20 +125,29 @@ export default {
                 console.error('Account not found');
                 return;
             }
-
-            const smaInterface = new SMAInterface(
-                account.chain.name, account.address, config, this.smaAddress
-            );
-
+            console.log("fetching max balance");
             try {
+                let rawTransferAmount = 0;
+                console.log(this.transferDirection);
+                console.log(this.transferAssetAddress);
                 if (this.transferDirection === 'toClient') {
                     // If transferring to client, get SMA balance
-                    const smaBalance = await smaInterface.getSMABalance(this.transferAssetAddress);
-                    this.transferMaxAmount = Number(ethers.formatUnits(smaBalance, 6));
+                    for (let i = 0; i < this.balances.length; i++) {
+                        console.log(this.balances[i].address);
+                        console.log(this.transferAssetAddress);
+                        if (this.balances[i].address == this.transferAssetAddress) {
+                            this.transferMaxAmount = this.balances[i].smaBalance;
+                            break;
+                        }
+                    }
                 } else {
                     // If transferring to SMA, get wallet balance
-                    const walletBalance = await smaInterface.getClientBalance(this.transferAssetAddress);
-                    this.transferMaxAmount = Number(ethers.formatUnits(walletBalance, 6));
+                    for (let i = 0; i < this.balances.length; i++) {
+                        if (this.balances[i].address == this.transferAssetAddress) {
+                            this.transferMaxAmount = this.balances[i].clientBalance;
+                            break;
+                        }
+                    }
                 }
                 this.transferAmount = this.transferMaxAmount;
             } catch (error) {
@@ -228,18 +243,30 @@ export default {
                 account.chain.name, account.address, config, this.smaAddress
             );
 
+            let smaBalances = await smaInterface.getAssetBalances();
+
             try {
+                let smaBalance = 0;
                 const balancePromises = this.allowedBaseTokens.map(async (token) => {
-                    const [smaBalance, clientBalance] = await Promise.all([
-                        smaInterface.getSMABalance(token.tokenAddress),
-                        smaInterface.getClientBalance(token.tokenAddress)
-                    ]);
+                    for (let i = 0; i < smaBalances.length; i++) {
+                        if (smaBalances[i].tokenAddress === token.tokenAddress) {
+                            smaBalance = ethers.toBigInt(smaBalances[i].tokenBalance);
+                        }
+                    }
+
+                    let erc20balance = await getBalance(config, {address: account.address, token: token.tokenAddress});
+                    let clientBalance = erc20balance.value;
+                    clientBalance = ethers.toBigInt(clientBalance);
+
+                    console.log(token.tokenAddress, token.tokenSymbol, smaBalance, clientBalance);
 
                     return {
                         symbol: token.tokenSymbol,
                         address: token.tokenAddress,
-                        smaBalance: Number(ethers.formatUnits(smaBalance, 6)),
-                        clientBalance: Number(ethers.formatUnits(clientBalance, 6))
+                        smaBalance: Number(ethers.formatUnits(smaBalance, token.decimals)),
+                        rawSmaBalance: smaBalance,
+                        clientBalance: Number(ethers.formatUnits(clientBalance, token.decimals)),
+                        rawClientBalance: clientBalance
                     };
                 });
 
