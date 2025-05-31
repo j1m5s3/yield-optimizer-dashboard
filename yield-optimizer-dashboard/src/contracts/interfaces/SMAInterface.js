@@ -105,13 +105,14 @@ export class SMAInterface {
     }
 
     invest = async (asset, fromProto, toProto) => {
+        console.log("invest: ", asset, fromProto, toProto);
         const data = await writeContract(
             this.config,
             {
                 abi: this.abi,
                 address: this.address,
                 functionName: "invest",
-                args: [asset, toProto, fromProto]
+                args: [asset, fromProto, toProto]
             }
         );
 

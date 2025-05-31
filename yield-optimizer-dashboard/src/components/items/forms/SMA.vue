@@ -11,6 +11,7 @@ export default {
     props: {
         contractAddress: String,
         allowedBaseTokens: Array,
+        allowedInterestTokens: Array,
     },
     data() {
         return {
@@ -46,6 +47,7 @@ export default {
             clientAddress: '',
             smaAddress: this.contractAddress,
             allowedBaseTokens: this.allowedBaseTokens,
+            allowedInterestTokens: this.allowedInterestTokens,
             txnReceipt: null,
             isFetchingBalance: false,
         };
@@ -244,13 +246,23 @@ export default {
             );
 
             let smaBalances = await smaInterface.getAssetBalances();
+            console.log(smaBalances);
 
             try {
-                let smaBalance = 0;
-                const balancePromises = this.allowedBaseTokens.map(async (token) => {
+                // Combine both token arrays
+                const allTokens = [
+                    ...this.allowedBaseTokens.map(token => ({ ...token, type: 'base' })),
+                    ...this.allowedInterestTokens.map(token => ({ ...token, type: 'interest' }))
+                ];
+
+                console.log(allTokens);
+
+                const balancePromises = allTokens.map(async (token) => {
+                    let smaBalance = 0n; // Initialize smaBalance for each token
                     for (let i = 0; i < smaBalances.length; i++) {
                         if (smaBalances[i].tokenAddress === token.tokenAddress) {
                             smaBalance = ethers.toBigInt(smaBalances[i].tokenBalance);
+                            console.log(smaBalance, token.tokenAddress);
                         }
                     }
 
@@ -263,14 +275,15 @@ export default {
                     return {
                         symbol: token.tokenSymbol,
                         address: token.tokenAddress,
+                        type: token.type,
                         smaBalance: Number(ethers.formatUnits(smaBalance, token.decimals)),
                         rawSmaBalance: smaBalance,
                         clientBalance: Number(ethers.formatUnits(clientBalance, token.decimals)),
                         rawClientBalance: clientBalance
                     };
                 });
-
                 this.balances = await Promise.all(balancePromises);
+                console.log(this.balances);
             } catch (error) {
                 console.error('Error fetching balances:', error);
             } finally {
@@ -444,6 +457,7 @@ export default {
                             <thead>
                                 <tr>
                                     <th>Token</th>
+                                    <th>Type</th>
                                     <th class="text-end">SMA Balance</th>
                                     <th class="text-end">Client Balance</th>
                                     <th class="text-end">Total Balance</th>
@@ -452,6 +466,11 @@ export default {
                             <tbody>
                                 <tr v-for="balance in balances" :key="balance.address">
                                     <td>{{ balance.symbol }}</td>
+                                    <td>
+                                        <span :class="['badge', balance.type === 'base' ? 'badge-primary' : 'badge-secondary']">
+                                            {{ balance.type }}
+                                        </span>
+                                    </td>
                                     <td class="text-end">{{ balance.smaBalance.toFixed(6) }}</td>
                                     <td class="text-end">{{ balance.clientBalance.toFixed(6) }}</td>
                                     <td class="text-end">{{ (balance.smaBalance + balance.clientBalance).toFixed(6) }}</td>

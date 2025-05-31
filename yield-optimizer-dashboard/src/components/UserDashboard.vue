@@ -61,6 +61,7 @@ export default {
             this.subFee = dashboardData.subFee;
             this.bestRateProtocols = dashboardData.bestRateProtocols;
             this.allowedBaseTokens = dashboardData.allowedBaseTokens;
+            this.allowedInterestTokens = dashboardData.allowedInterestTokens;
         }
 
         this.isBusy = false;
@@ -112,6 +113,7 @@ export default {
                 subFee: managerAdminData.subFee,
                 bestRateProtocols: oracleData.bestRateProtocols,
                 allowedBaseTokens: managerAdminData.allowedBaseTokens,
+                allowedInterestTokens: managerAdminData.allowedInterestTokens,
                 showSMA: showSMA,
                 showFactory: showFactory,
             }
@@ -165,10 +167,12 @@ export default {
             let formattedFee = ethers.formatEther(subFee);
             let fee = formattedFee * 10**18;
             let allowedBaseTokens = await managerAdminInterface.getBaseTokens();
+            let allowedInterestTokens = await managerAdminInterface.getAllowedInterestTokens();
 
             console.log("ALLOWED BASE TOKENS: ", allowedBaseTokens);
+            console.log("ALLOWED INTEREST TOKENS: ", allowedInterestTokens);
 
-            return {subFee: fee, allowedBaseTokens: allowedBaseTokens};
+            return {subFee: fee, allowedBaseTokens: allowedBaseTokens, allowedInterestTokens: allowedInterestTokens};
         },
         async handleSMACreated(event) {
             console.log('SMA Created:', event);
@@ -224,7 +228,7 @@ export default {
             <div class="col">
                 <div class="card no-bottom-border" title="SMA">
                     <SMAView :contractAddress="smaAddress" />
-                    <SMA :contractAddress="smaAddress" :allowed-base-tokens="allowedBaseTokens"/>
+                    <SMA :contractAddress="smaAddress" :allowed-base-tokens="allowedBaseTokens" :allowed-interest-tokens="allowedInterestTokens"/>
                 </div>
             </div>
         </div>
