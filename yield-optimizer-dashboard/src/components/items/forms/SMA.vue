@@ -4,7 +4,7 @@ import { ERC20Interface } from '@/contracts/interfaces/ERC20Interface.js';
 import { SMAFactoryInterface } from '@/contracts/interfaces/SMAFactoryInterface.js';
 import { ethers } from 'ethers';
 
-import { getAccount, getBalance } from '@wagmi/core';
+import { getAccount, getBalance, getTransactionReceipt } from '@wagmi/core';
 import { config } from '@/utils/configs/chainConfig.js';
 
 export default {
@@ -31,6 +31,7 @@ export default {
             toProtocol: '',
             isInvestLoading: false,
             isInvestCollapsed: false,
+            investError: '',
             // Active Management properties
             isActiveManagement: false,
             isActiveManagementCollapsed: false,
@@ -52,7 +53,77 @@ export default {
             isFetchingBalance: false,
         };
     },
+    computed: {
+        availableProtocols() {
+            // Get unique protocols from allowedInterestTokens
+            const protocols = new Set(this.allowedInterestTokens.map(token => token.protocol));
+            return Array.from(protocols).sort();
+        },
+        availableToProtocols() {
+            // Get protocols that are different from the selected fromProtocol
+            return this.availableProtocols.filter(protocol => protocol !== this.fromProtocol);
+        },
+        availableInvestAssets() {
+            // Get all tokens (base and interest) that have a total balance > 0
+            const allTokens = [...this.allowedBaseTokens, ...this.allowedInterestTokens];
+            return allTokens.filter(token => {
+                const balance = this.balances.find(b => b.address === token.tokenAddress);
+                return balance && (balance.smaBalance + balance.clientBalance) > 0;
+            });
+        },
+        availableTransferAssets() {
+            // Get all tokens that have a balance > 0 in either SMA or client wallet
+            const allTokens = [...this.allowedBaseTokens, ...this.allowedInterestTokens];
+            return allTokens.filter(token => {
+                const balance = this.balances.find(b => b.address === token.tokenAddress);
+                if (!balance) return false;
+                
+                // For transfers to client, check SMA balance
+                // For transfers to SMA, check client balance
+                return this.transferDirection === 'toClient' 
+                    ? balance.smaBalance > 0 
+                    : balance.clientBalance > 0;
+            });
+        },
+        isBaseToken() {
+            return this.allowedBaseTokens.some(token => token.tokenAddress === this.investAssetAddress);
+        }
+    },
     methods: {
+        async waitForTransactionConfirmation(txHash) {
+            if (!txHash) return null;
+            
+            let receipt = null;
+            let attempts = 0;
+            const maxAttempts = 60; // 1 minute timeout
+            
+            while (!receipt && attempts < maxAttempts) {
+                try {
+                    console.log(`Waiting for transaction confirmation (attempt ${attempts + 1}/${maxAttempts})...`);
+                    console.log("txHash");
+                    console.log(txHash);
+                    receipt = await getTransactionReceipt(config, {
+                        hash: txHash
+                    });
+                    console.log("receipt");
+                    console.log(receipt);
+                    if (receipt) {
+                        console.log('Transaction confirmed:', receipt);
+                        return receipt;
+                    }
+                } catch (error) {
+                    console.log('Transaction not yet confirmed, retrying...');
+                }
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                attempts++;
+            }
+            
+            if (!receipt) {
+                throw new Error('Transaction confirmation timeout');
+            }
+            
+            return receipt;
+        },
         async submitTransfer() {
             const account = getAccount(config);
             if (!account) {
@@ -69,29 +140,35 @@ export default {
             );
 
             let decimals = await erc20Interface.getDecimals();
-            let transferAmount = Number(this.transferAmount) * 10**decimals;
+            console.log('Token decimals:', decimals);
+            console.log('Original transfer amount:', this.transferAmount);
+            let transferAmount = ethers.parseUnits(this.transferAmount.toString(), decimals);
+            console.log('Parsed transfer amount:', transferAmount.toString());
 
             this.isTransferLoading = true;
             try {
                 if (this.transferDirection === 'toClient') {
+                    console.log("transferring to client");
+                    console.log(this.transferAssetAddress, transferAmount);
                     this.txnReceipt = await smaInterface.transferFromSMA(this.transferAssetAddress, transferAmount);
                 } else {
                     const allowance = await erc20Interface.allowance(account.address, this.smaAddress);
 
-                    if (allowance < this.transferAmount) {
-                        await erc20Interface.approve(this.smaAddress, transferAmount);
+                    if (allowance < transferAmount) {
+                        const approveTx = await erc20Interface.approve(this.smaAddress, transferAmount);
+                        await this.waitForTransactionConfirmation(approveTx);
                     }
 
                     this.txnReceipt = await smaInterface.transferFromClient(this.transferAssetAddress, transferAmount);
                 }
-                // Wait for transaction confirmation
-                if (this.txnReceipt) {
-                    await this.txnReceipt;
-                }
+
+                await this.waitForTransactionConfirmation(this.txnReceipt);
             } catch (error) {
                 console.error('Error transferring:', error);
+                throw error;
             } finally {
                 this.isTransferLoading = false;
+                this.txnReceipt = null;
                 this.fetchAllBalances();
                 this.fetchTransactions();
                 this.resetForm();
@@ -113,7 +190,22 @@ export default {
 
             this.isBusy = true;
             this.txnReceipt = await smaInterface.invest(asset, fromProto, toProto);
+            
+            if (this.txnReceipt) {
+                let receipt = null;
+                while (!receipt) {
+                    try{
+                        receipt = await getTransactionReceipt(config, {
+                            hash: this.txnReceipt
+                        });
+                    } catch (error) {
+                        console.log("Waiting for transaction confirmation");
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
+            }
             this.isBusy = false;
+            this.txnReceipt = null;
         },
         fetchMaxBalance() {
             if (!this.transferAssetAddress) {
@@ -160,7 +252,15 @@ export default {
         },
         async submitInvest() {
             if (!this.investAssetAddress || !this.fromProtocol || !this.toProtocol) {
+                console.log(this.investAssetAddress, this.fromProtocol, this.toProtocol);
                 console.error('Missing required fields');
+                return;
+            }
+
+            // Check if the asset has a balance in the SMA
+            const assetBalance = this.balances.find(b => b.address === this.investAssetAddress);
+            if (!assetBalance || assetBalance.smaBalance <= 0) {
+                this.investError = `Please transfer ${assetBalance?.symbol || 'the selected asset'} to your SMA before investing.`;
                 return;
             }
 
@@ -175,20 +275,22 @@ export default {
             );
 
             this.isInvestLoading = true;
+            this.investError = ''; // Clear any previous errors
             try {
                 this.txnReceipt = await smaInterface.invest(
                     this.investAssetAddress,
                     this.fromProtocol,
                     this.toProtocol
                 );
-                // Wait for transaction confirmation
-                if (this.txnReceipt) {
-                    await this.txnReceipt;
-                }
+
+                await this.waitForTransactionConfirmation(this.txnReceipt);
             } catch (error) {
                 console.error('Error investing:', error);
+                this.investError = 'Failed to process investment. Please try again.';
+                throw error;
             } finally {
                 this.isInvestLoading = false;
+                this.txnReceipt = null;
             }
         },
         async toggleActiveManagement() {
@@ -205,18 +307,14 @@ export default {
             this.isActiveManagementLoading = true;
             try {
                 this.txnReceipt = await smaInterface.setActiveManagement(!this.isActiveManagement);
-                console.log(this.txnReceipt);
-                // Wait for transaction confirmation
-                if (this.txnReceipt) {
-                    console.log("Waiting for transaction confirmation for active management");
-                    console.log(this.txnReceipt);
-                    await this.txnReceipt;
-                }
+                await this.waitForTransactionConfirmation(this.txnReceipt);
                 this.isActiveManagement = !this.isActiveManagement;
             } catch (error) {
                 console.error('Error toggling active management:', error);
+                throw error;
             } finally {
                 this.isActiveManagementLoading = false;
+                this.txnReceipt = null;
             }
         },
         resetForm() {
@@ -229,6 +327,7 @@ export default {
             this.investAssetAddress = '';
             this.fromProtocol = '';
             this.toProtocol = '';
+            this.txnReceipt = null;
             console.log('reset');
         },
         async fetchAllBalances() {
@@ -270,16 +369,23 @@ export default {
                     let clientBalance = erc20balance.value;
                     clientBalance = ethers.toBigInt(clientBalance);
 
-                    console.log(token.tokenAddress, token.tokenSymbol, smaBalance, clientBalance);
+                    // Get decimals from ERC20 interface
+                    const erc20Interface = new ERC20Interface(
+                        account.chain.name, account.address, config, token.tokenAddress
+                    );
+                    const decimals = await erc20Interface.getDecimals();
+
+                    console.log(token.tokenAddress, token.tokenSymbol, smaBalance, clientBalance, decimals);
 
                     return {
                         symbol: token.tokenSymbol,
                         address: token.tokenAddress,
                         type: token.type,
-                        smaBalance: Number(ethers.formatUnits(smaBalance, token.decimals)),
+                        smaBalance: Number(ethers.formatUnits(smaBalance, decimals)),
                         rawSmaBalance: smaBalance,
-                        clientBalance: Number(ethers.formatUnits(clientBalance, token.decimals)),
-                        rawClientBalance: clientBalance
+                        clientBalance: Number(ethers.formatUnits(clientBalance, decimals)),
+                        rawClientBalance: clientBalance,
+                        decimals: decimals
                     };
                 });
                 this.balances = await Promise.all(balancePromises);
@@ -399,6 +505,32 @@ export default {
                 ]);
             },
             deep: true
+        },
+        investAssetAddress: {
+            immediate: true,
+            handler(newValue) {
+                if (!newValue) {
+                    this.fromProtocol = '';
+                    return;
+                }
+
+                // Check if it's a base token
+                if (this.isBaseToken) {
+                    this.fromProtocol = 'init';
+                    return;
+                }
+
+                // Find the corresponding interest token and set its protocol
+                const interestToken = this.allowedInterestTokens.find(
+                    token => token.tokenAddress === newValue
+                );
+                
+                if (interestToken) {
+                    this.fromProtocol = interestToken.protocol;
+                } else {
+                    this.fromProtocol = 'init';
+                }
+            }
         }
     }
 };
@@ -529,13 +661,18 @@ export default {
                                     >
                                         <option value="">Select an asset</option>
                                         <option 
-                                            v-for="token in allowedBaseTokens" 
+                                            v-for="token in availableTransferAssets" 
                                             :key="token.tokenAddress" 
                                             :value="token.tokenAddress"
                                         >
-                                            {{ token.tokenSymbol }}
+                                            {{ token.tokenSymbol }} ({{ transferDirection === 'toClient' 
+                                                ? balances.find(b => b.address === token.tokenAddress)?.smaBalance.toFixed(6) 
+                                                : balances.find(b => b.address === token.tokenAddress)?.clientBalance.toFixed(6) }})
                                         </option>
                                     </select>
+                                    <small class="form-text text-muted" v-if="availableTransferAssets.length === 0">
+                                        No assets available for transfer
+                                    </small>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -604,6 +741,10 @@ export default {
             </div>
             <div class="collapse" :class="{ 'show': !isInvestCollapsed }">
                 <div class="section-body">
+                    <div v-if="investError" class="alert alert-warning mb-4" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ investError }}
+                    </div>
                     <form action="#" @submit.prevent="submitInvest" v-if="!isBusy">
                         <div class="row mb-4">
                             <div class="col-md-4">
@@ -617,37 +758,60 @@ export default {
                                     >
                                         <option value="">Select an asset</option>
                                         <option 
-                                            v-for="token in allowedBaseTokens" 
+                                            v-for="token in availableInvestAssets" 
                                             :key="token.tokenAddress" 
                                             :value="token.tokenAddress"
                                         >
-                                            {{ token.tokenSymbol }}
+                                            {{ token.tokenSymbol }} ({{ balances.find(b => b.address === token.tokenAddress)?.smaBalance.toFixed(6) || '0' }})
                                         </option>
                                     </select>
+                                    <small class="form-text text-muted" v-if="availableInvestAssets.length === 0">
+                                        No assets available for investment
+                                    </small>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="from-protocol">From Protocol</label>
-                                    <input 
-                                        type="text" 
+                                    <select 
                                         class="form-control" 
                                         id="from-protocol" 
                                         v-model="fromProtocol"
                                         required
+                                        :disabled="isBaseToken"
                                     >
+                                        <option value="">Select protocol</option>
+                                        <option 
+                                            v-for="protocol in availableProtocols" 
+                                            :key="protocol" 
+                                            :value="protocol"
+                                        >
+                                            {{ protocol }}
+                                        </option>
+                                    </select>
+                                    <small class="form-text text-muted" v-if="isBaseToken">
+                                        Base tokens don't have a source protocol
+                                    </small>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="to-protocol">To Protocol</label>
-                                    <input 
-                                        type="text" 
+                                    <select 
                                         class="form-control" 
                                         id="to-protocol" 
                                         v-model="toProtocol"
                                         required
                                     >
+                                        <option value="">Select protocol</option>
+                                        <option 
+                                            v-for="protocol in availableToProtocols" 
+                                            :key="protocol" 
+                                            :value="protocol"
+                                        >
+                                            {{ protocol }}
+                                        </option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
