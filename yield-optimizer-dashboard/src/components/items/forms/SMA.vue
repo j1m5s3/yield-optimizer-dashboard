@@ -277,6 +277,8 @@ export default {
             this.isInvestLoading = true;
             this.investError = ''; // Clear any previous errors
             try {
+                console.log("investing");
+                console.log(this.investAssetAddress, this.fromProtocol, this.toProtocol);
                 this.txnReceipt = await smaInterface.invest(
                     this.investAssetAddress,
                     this.fromProtocol,
