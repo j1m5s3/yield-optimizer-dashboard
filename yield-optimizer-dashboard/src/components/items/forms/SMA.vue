@@ -2,8 +2,9 @@
 import { SMAInterface } from '@/contracts/interfaces/SMAInterface.js';
 import { ERC20Interface } from '@/contracts/interfaces/ERC20Interface.js';
 import { SMAFactoryInterface } from '@/contracts/interfaces/SMAFactoryInterface.js';
-import { ethers } from 'ethers';
+import { getTransactionHistory } from '@/utils/apis/DataApi.js';
 
+import { ethers } from 'ethers';
 import { getAccount, getBalance, getTransactionReceipt } from '@wagmi/core';
 import { config } from '@/utils/configs/chainConfig.js';
 
@@ -91,7 +92,8 @@ export default {
     },
     methods: {
         async waitForTransactionConfirmation(txHash) {
-            if (!txHash) return null;
+            console.log("txHash: ", txHash);
+            // if (!txHash) return null;
             
             let receipt = null;
             let attempts = 0;
@@ -155,8 +157,7 @@ export default {
                     const allowance = await erc20Interface.allowance(account.address, this.smaAddress);
 
                     if (allowance < transferAmount) {
-                        const approveTx = await erc20Interface.approve(this.smaAddress, transferAmount);
-                        await this.waitForTransactionConfirmation(approveTx);
+                        await erc20Interface.approve(this.smaAddress, transferAmount);
                     }
 
                     this.txnReceipt = await smaInterface.transferFromClient(this.transferAssetAddress, transferAmount);
@@ -346,6 +347,9 @@ export default {
                 account.chain.name, account.address, config, this.smaAddress
             );
 
+            let timeCreated = await smaInterface.getTimeCreated();
+            console.log("timeCreated: ", Number(timeCreated));
+
             let smaBalances = await smaInterface.getAssetBalances();
             console.log(smaBalances);
 
@@ -416,24 +420,40 @@ export default {
             );
 
             try {
-                // Get transfer events
-                const transferEvents = await smaInterface.getTransferEvents();
-                const investEvents = await smaInterface.getInvestEvents();
+                let timeCreated = await smaInterface.getTimeCreated();
+                console.log("timeCreated: ", Number(timeCreated));
+
+                let response = await getTransactionHistory({
+                    address: this.smaAddress,
+                    timestamp: Number(timeCreated),
+                    chain_id: account.chain.id
+                });
+                let txnHistory = response.transactions;
+                console.log("txnHistory: ", txnHistory);
                 
-                // Combine and sort events by timestamp
-                const allEvents = [...transferEvents, ...investEvents].sort((a, b) => b.timestamp - a.timestamp);
-                
-                // Map events to transaction objects
-                this.transactions = allEvents.map(event => ({
-                    type: event.type,
-                    hash: event.hash,
-                    timestamp: event.timestamp,
-                    tokenSymbol: this.getTokenSymbol(event.tokenAddress),
-                    amount: event.amount,
-                    fromProtocol: event.fromProtocol || '-',
-                    toProtocol: event.toProtocol || '-',
-                    status: event.status
+                // Map API response to transaction objects with formatted amounts
+                this.transactions = await Promise.all(txnHistory.map(async tx => {
+                    // Get decimals for the token
+                    const erc20Interface = new ERC20Interface(
+                        account.chain.name, account.address, config, tx.token_address
+                    );
+                    const decimals = await erc20Interface.getDecimals();
+                    
+                    return {
+                        type: tx.type,
+                        hash: tx.hash,
+                        timestamp: Number(tx.timestamp),
+                        tokenSymbol: tx.token_symbol,
+                        amount: Number(ethers.formatUnits(tx.amount, decimals)),
+                        from: tx.from,
+                        to: tx.to,
+                        tokenAddress: tx.token_address,
+                        status: 'success' // Since these are confirmed transactions
+                    };
                 }));
+
+                // Sort transactions by timestamp (newest first)
+                this.transactions.sort((a, b) => b.timestamp - a.timestamp);
             } catch (error) {
                 console.error('Error fetching transactions:', error);
             } finally {
@@ -448,7 +468,7 @@ export default {
             return new Date(timestamp * 1000).toLocaleString();
         },
         formatAmount(amount) {
-            return Number(ethers.formatUnits(amount, 6)).toFixed(6);
+            return amount.toFixed(6);
         },
         async refreshTransactions() {
             await this.fetchTransactions();
@@ -474,6 +494,7 @@ export default {
             
             const chainId = account.chain.id;
             const explorerUrl = config.chains.find(chain => chain.id === chainId)?.blockExplorers?.default?.url;
+            console.log("explorerUrl: ", explorerUrl);
             return explorerUrl ? `${explorerUrl}/tx/${hash}` : '#';
         },
         async copyToClipboard(text) {
@@ -489,7 +510,11 @@ export default {
         },
         formatAddress(address) {
             if (!address) return '';
-            return address;
+            return `${address.slice(0, 6)}...${address.slice(-4)}`;
+        },
+        formatHash(hash) {
+            if (!hash) return '';
+            return `${hash.slice(0, 8)}...${hash.slice(-4)}`;
         }
     },
     async mounted() {
@@ -571,23 +596,39 @@ export default {
         <div class="section">
             <div class="section-header" @click="isBalancesCollapsed = !isBalancesCollapsed" style="cursor: pointer;">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">Balances</h3>
                     <div class="d-flex align-items-center">
+                        <h3 class="mb-0">Balances</h3>
                         <button 
-                            class="btn btn-link btn-sm me-2" 
+                            class="btn btn-outline-primary btn-sm ms-3 refresh-btn" 
                             @click.stop="fetchAllBalances"
                             :disabled="isFetchingBalances"
+                            title="Refresh balances"
                         >
-                            <i class="fas fa-sync-alt" :class="{ 'fa-spin': isFetchingBalances }"></i>
+                            <img 
+                                src="../../../assets/bootstrap-reboot.svg" 
+                                class="refresh-icon" 
+                                :class="{ 'spinning': isFetchingBalances }"
+                                alt="Refresh"
+                            />
                         </button>
-                        <i :class="['fas', isBalancesCollapsed ? 'fa-chevron-down' : 'fa-chevron-up']"></i>
                     </div>
+                    <i :class="['fas', isBalancesCollapsed ? 'fa-chevron-down' : 'fa-chevron-up']"></i>
                 </div>
             </div>
             <div class="collapse" :class="{ 'show': !isBalancesCollapsed }">
                 <div class="section-body">
                     <div class="table-responsive">
-                        <table class="table">
+                        <div v-if="isFetchingBalances" class="loading-container">
+                            <div class="spinner-container">
+                                <img 
+                                    src="../../../assets/bootstrap-reboot.svg" 
+                                    class="refresh-icon spinning" 
+                                    alt="Loading"
+                                />
+                                <span class="loading-text">Loading balances...</span>
+                            </div>
+                        </div>
+                        <table v-else class="table">
                             <thead>
                                 <tr>
                                     <th>Token</th>
@@ -609,15 +650,8 @@ export default {
                                     <td class="text-end">{{ balance.clientBalance.toFixed(6) }}</td>
                                     <td class="text-end">{{ (balance.smaBalance + balance.clientBalance).toFixed(6) }}</td>
                                 </tr>
-                                <tr v-if="isFetchingBalances">
-                                    <td colspan="4" class="text-center">
-                                        <div class="spinner-border spinner-border-sm" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr v-if="!isFetchingBalances && balances.length === 0">
-                                    <td colspan="4" class="text-center">No balances found</td>
+                                <tr v-if="balances.length === 0">
+                                    <td colspan="5" class="text-center">No balances found</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -875,33 +909,49 @@ export default {
         <div class="section">
             <div class="section-header" @click="isTransactionsCollapsed = !isTransactionsCollapsed" style="cursor: pointer;">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">Transaction History</h3>
                     <div class="d-flex align-items-center">
+                        <h3 class="mb-0">Transaction History</h3>
                         <button 
-                            class="btn btn-link btn-sm me-2" 
+                            class="btn btn-outline-primary btn-sm ms-3 refresh-btn" 
                             @click.stop="fetchTransactions"
                             :disabled="isFetchingTransactions"
+                            title="Refresh transactions"
                         >
-                            <i class="fas fa-sync-alt" :class="{ 'fa-spin': isFetchingTransactions }"></i>
+                            <img 
+                                src="../../../assets/bootstrap-reboot.svg" 
+                                class="refresh-icon" 
+                                :class="{ 'spinning': isFetchingTransactions }"
+                                alt="Refresh"
+                            />
                         </button>
-                        <i :class="['fas', isTransactionsCollapsed ? 'fa-chevron-down' : 'fa-chevron-up']"></i>
                     </div>
+                    <i :class="['fas', isTransactionsCollapsed ? 'fa-chevron-down' : 'fa-chevron-up']"></i>
                 </div>
             </div>
             <div class="collapse" :class="{ 'show': !isTransactionsCollapsed }">
                 <div class="section-body">
                     <div class="table-responsive">
-                        <table class="table">
+                        <div v-if="isFetchingTransactions" class="loading-container">
+                            <div class="spinner-container">
+                                <img 
+                                    src="../../../assets/bootstrap-reboot.svg" 
+                                    class="refresh-icon spinning" 
+                                    alt="Loading"
+                                />
+                                <span class="loading-text">Loading transactions...</span>
+                            </div>
+                        </div>
+                        <table v-else class="table">
                             <thead>
                                 <tr>
                                     <th>Type</th>
                                     <th>Token</th>
                                     <th class="text-end">Amount</th>
-                                    <th>From Protocol</th>
-                                    <th>To Protocol</th>
+                                    <th>From</th>
+                                    <th>To</th>
                                     <th>Status</th>
                                     <th>Time</th>
-                                    <th>Transaction</th>
+                                    <th>Hash</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -913,8 +963,8 @@ export default {
                                     </td>
                                     <td>{{ tx.tokenSymbol }}</td>
                                     <td class="text-end">{{ formatAmount(tx.amount) }}</td>
-                                    <td>{{ tx.fromProtocol }}</td>
-                                    <td>{{ tx.toProtocol }}</td>
+                                    <td>{{ formatAddress(tx.from) }}</td>
+                                    <td>{{ formatAddress(tx.to) }}</td>
                                     <td>
                                         <span :class="['badge', getStatusClass(tx.status)]">
                                             {{ tx.status }}
@@ -927,18 +977,11 @@ export default {
                                             target="_blank" 
                                             class="text-primary"
                                         >
-                                            <i class="fas fa-external-link-alt"></i>
+                                            {{ formatHash(tx.hash) }}
                                         </a>
                                     </td>
                                 </tr>
-                                <tr v-if="isFetchingTransactions">
-                                    <td colspan="8" class="text-center">
-                                        <div class="spinner-border spinner-border-sm" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr v-if="!isFetchingTransactions && transactions.length === 0">
+                                <tr v-if="transactions.length === 0">
                                     <td colspan="8" class="text-center">No transactions found</td>
                                 </tr>
                             </tbody>
@@ -1458,5 +1501,53 @@ select.form-control {
     font-size: 0.875rem;
     margin-bottom: 1rem;
     line-height: 1.5;
+}
+
+.refresh-btn {
+    padding: 0.25rem 0.5rem;
+    min-width: 32px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.refresh-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    width: 100%;
+}
+
+.spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.loading-text {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
 }
 </style>

@@ -46,6 +46,8 @@ export class SMAInterface {
                 args: [asset, amount]
             }
         );
+
+        return data;
     }
 
     /*
@@ -132,6 +134,20 @@ export class SMAInterface {
 
         return data;
     }
+
+    getTimeCreated = async () => {
+        const data = await readContract(
+            this.config,
+            {
+                abi: this.abi,
+                address: this.address,
+                functionName: "timeCreated",
+            }
+        );
+
+        return data;
+    }
+
 }
 
 export default SMAInterface;

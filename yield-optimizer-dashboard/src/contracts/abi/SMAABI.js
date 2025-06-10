@@ -1,5 +1,5 @@
 export const SMAABI = {
-  "abi": [
+  "abi":  [
     {
       "inputs": [
         {
@@ -155,6 +155,19 @@ export const SMAABI = {
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "nextPaymentDue",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "bool",
@@ -201,6 +214,19 @@ export const SMAABI = {
           "internalType": "bool",
           "name": "",
           "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "timeCreated",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",

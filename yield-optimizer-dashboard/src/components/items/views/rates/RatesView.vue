@@ -1,5 +1,5 @@
 <script>
-import { getLiveRates, getHistoricalRates } from '@/utils/apis/RatesApi';
+import { getLiveRates, getHistoricalRates } from '@/utils/apis/DataApi.js'
 import { unpackHistRates, ratesXY } from '@/utils/helpers/RatesHelpers.js';
 import ratesIdentifiers from '@/utils/constants/ratesIdentifiers.json';
 
