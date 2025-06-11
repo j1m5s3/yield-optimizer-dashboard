@@ -1,6 +1,6 @@
 // Contract call caching utility
 class ContractCache {
-    constructor(ttl = 10000) { // Default TTL of 10 seconds
+    constructor(ttl = 2000) { // Default TTL of 2 seconds
         this.cache = new Map();
         this.ttl = ttl;
     }
