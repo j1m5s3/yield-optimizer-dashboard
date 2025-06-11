@@ -1,5 +1,6 @@
 // Local
 import { SMAABI } from "../abi/SMAABI";
+import contractCache from '@/utils/cache/ContractCache';
 
 // External
 import { readContract, writeContract } from "@wagmi/core";
@@ -46,6 +47,8 @@ export class SMAInterface {
                 args: [asset, amount]
             }
         );
+
+        return data;
     }
 
     /*
@@ -91,30 +94,40 @@ export class SMAInterface {
      * Get all asset balances in the SMA
      */
     getAssetBalances = async () => {
+        const cacheKey = contractCache.generateKey(this.address, 'getAssetBalances');
+        const cachedValue = contractCache.get(cacheKey);
+        
+        if (cachedValue) {
+            return cachedValue;
+        }
+
         const data = await readContract(
             this.config,
             {
                 abi: this.abi,
                 address: this.address,
-                functionName: "getAssetBalances",
-                args: []
+                functionName: "getAssetBalances"
             }
         );
 
+        contractCache.set(cacheKey, data);
         return data;
     }
 
     invest = async (asset, fromProto, toProto) => {
+        console.log("invest: ", asset, fromProto, toProto);
         const data = await writeContract(
             this.config,
             {
                 abi: this.abi,
                 address: this.address,
                 functionName: "invest",
-                args: [asset, toProto, fromProto]
+                args: [asset, fromProto, toProto]
             }
         );
 
+        // Clear cache after write operation
+        contractCache.clear();
         return data;
     }
 
@@ -129,8 +142,32 @@ export class SMAInterface {
             }
         );
 
+        // Clear cache after write operation
+        contractCache.clear();
         return data;
     }
+
+    getTimeCreated = async () => {
+        const cacheKey = contractCache.generateKey(this.address, 'timeCreated');
+        const cachedValue = contractCache.get(cacheKey);
+        
+        if (cachedValue) {
+            return cachedValue;
+        }
+
+        const data = await readContract(
+            this.config,
+            {
+                abi: this.abi,
+                address: this.address,
+                functionName: "timeCreated",
+            }
+        );
+
+        contractCache.set(cacheKey, data);
+        return data;
+    }
+
 }
 
 export default SMAInterface;

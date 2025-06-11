@@ -60,6 +60,19 @@ class SMAManagerAdminInterface {
 
         return data;
     }
+
+    getSubscriptionFee = async () => {
+        const data = await readContract(
+            this.config,
+            {
+                abi: this.abi, 
+                address: this.address, 
+                functionName: "getSubscriptionFee"
+            }
+        );
+
+        return data;
+    }
 }
 
 export default SMAManagerAdminInterface;

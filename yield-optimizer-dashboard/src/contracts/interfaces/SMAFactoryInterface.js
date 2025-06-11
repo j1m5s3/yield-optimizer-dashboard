@@ -4,7 +4,7 @@ import { SMAFactoryABI } from "../abi/SMAFactoryABI";
 // External
 import { readContract, writeContract } from "@wagmi/core";
 
-class SMAFactoryInterface {
+export class SMAFactoryInterface {
     /*
     * SMAFactoryInterface
     * 

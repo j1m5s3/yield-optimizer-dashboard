@@ -9,107 +9,58 @@ import { config } from '@/utils/configs/chainConfig.js';
 
 import { ethers } from "ethers";
 
+/**
+ * * SMAOracleView component
+ * * This component is used to display the details of the SMA Oracle contract.
+ * * * It shows the oracle address, SMA fee, and the best rate protocols.
+ * * * @component
+ * * @example
+ * * <SMAOracleView contractAddress="0x1234567890abcdef" bestRateProtocols="0xabcdef1234567890" deployFee="0.01" />
+ * * @param {String} contractAddress - The address of the SMA Oracle contract.
+ * * * @param {Array} bestRateProtocols - The list of best rate protocols.
+ * * * @param {String} deployFee - The deployment fee for the SMA Oracle contract.
+ * * @returns {Object} - The component object.
+ */
+
 // TODO: Consider replacing best rate protocol func call with api call if no account is found
 export default {
+    props: {
+        contractAddress: String,
+        bestRateProtocols: Array,
+        deployFee: String,
+    },
     data() {
         return {
-            isBusy: false,
-            clientAddress: '',
-            oracleAddress: '',
-            managerAdminAddress: '',
-            smaFee: '',
-            bestRateProtocols: [],
+            oracleAddress: this.contractAddress,
+            smaFee: this.deployFee,
+            bestRateProtocols: this.bestRateProtocols,
             txnReceipt: null,
+            isCopied: false,
         };
     },
-    async mounted() {
-        let addresses = await this.setAddresses();
-
-        this.oracleAddress = addresses.oracle;
-        this.managerAdminAddress = addresses.managerAdmin;
-
-        let oracleData = await this.getOracleData();
-        this.smaFee = oracleData.fee;
-        this.bestRateProtocols = oracleData.bestRateProtocols;
-    },
     methods: {
-        async setAddresses() {
-            const account = getAccount(config);
-            if (!account) {
-                console.error('Account not found');
-                return {oracle: ''};
-            }
-            console.log(account);
-
-            const smaAddressProviderInterface = new SMAAddressProviderInterface(
-                account.chain.name, account.address, config
-            );
-
-            let oracleAddress = await smaAddressProviderInterface.getOracleAddress();
-            if (!oracleAddress) {
-                console.error('SMA Address not found');
-                oracleAddress = '';
-            }
-
-            let managerAdminAddress = await smaAddressProviderInterface.getManagerAdminAddress();
-            if (!managerAdminAddress) {
-                console.error('Manager Admin Address not found');
-                managerAdminAddress = '';
-            }
-
-            return {oracle: oracleAddress, managerAdmin: managerAdminAddress};
-        },
-        async getOracleData() {
+        async copyToClipboard(text) {
             try {
-                this.isBusy = true;
-                const account = getAccount(config);
-                if (!account || this.oracleAddress === '') {
-                    console.error('Account not found');
-                    return;
-                }
-                console.log(account);
-
-                const managerAdminInterface = new SMAManagerAdminInterface(
-                    account.chain.name, account.address, config, this.managerAdminAddress
-                );
-
-                let allowedBaseTokens = await managerAdminInterface.getBaseTokens();
-                console.log("ALLOWED TOKENS: ", allowedBaseTokens);
-                let tokenInfo = [];
-                for (let i = 0; i < allowedBaseTokens.length; i++) {
-                    tokenInfo.push({tokenAddress: allowedBaseTokens[i].tokenAddress, tokenSymbol: allowedBaseTokens[i].tokenSymbol});
-                }
-
-                const smaOracleInterface = new SMAOracleInterface(
-                    account.chain.name, account.address, config, this.oracleAddress
-                );
-
-                let bestRateProtocols = []
-                for (let i = 0; i < tokenInfo.length; i++) {
-                    let bestRateProtocol = await smaOracleInterface.getBestRateProtocolName(tokenInfo[i].tokenAddress);
-                    bestRateProtocols.push({
-                        tokenSymbol: tokenInfo[i].tokenSymbol,
-                        tokenAddress: tokenInfo[i].tokenAddress, 
-                        bestRateProtocol: bestRateProtocol
-                    });
-                }
-                console.log("BEST RATES: ", bestRateProtocols);
-
-                let feeGwei = await smaOracleInterface.getFee();
-                console.log("FEE: ", ethers.toBigInt(feeGwei));
-                
-                let fee = ethers.formatEther(feeGwei);
-                console.log("FEE ETHER: ", fee);
-
-                console.log(fee);
-                this.isBusy = false;
-
-                return {fee: fee, bestRateProtocols: bestRateProtocols};
-            } catch (error) {
-                console.error(error);
-                this.isBusy = false;
-                return {fee: '', bestRateProtocols: []};
+                await navigator.clipboard.writeText(text);
+                this.isCopied = true;
+                setTimeout(() => {
+                    this.isCopied = false;
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
             }
+        },
+        getExplorerUrl(hash, isAddress = false) {
+            const account = getAccount(config);
+            if (!account) return '#';
+            
+            const chainId = account.chain.id;
+            const explorerUrl = config.chains.find(chain => chain.id === chainId)?.blockExplorers?.default?.url;
+            return explorerUrl ? `${explorerUrl}/${isAddress ? 'address' : 'tx'}/${hash}` : '#';
+        },
+        formatAddress(address) {
+            if (!address) return '';
+            return address;
         },
     },
 };
@@ -118,11 +69,6 @@ export default {
 <template>
     <div id="oracle-view">
         <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <h1>Oracle</h1>
-                </div>
-            </div>
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -136,32 +82,73 @@ export default {
                                 <div class="col-12">
                                     <div class="form-group">
                                         <label for="oracle-address">Oracle Address</label>
-                                        <input type="text" class="form-control" id="oracle-address" v-model="oracleAddress" readonly>
+                                        <div class="d-flex align-items-center">
+                                            <div class="form-control d-flex align-items-center">
+                                                <a 
+                                                    :href="getExplorerUrl(contractAddress, true)" 
+                                                    target="_blank" 
+                                                    class="text-primary text-decoration-none"
+                                                    style="word-break: break-all;"
+                                                >
+                                                    {{ formatAddress(contractAddress) }}
+                                                </a>
+                                            </div>
+                                            <button 
+                                                class="btn btn-outline-primary btn-sm ms-2 copy-button" 
+                                                @click="copyToClipboard(contractAddress)"
+                                                :title="isCopied ? 'Copied!' : 'Copy address'"
+                                            >
+                                                <i :class="['bi', isCopied ? 'bi-check-lg' : 'bi-clipboard']"></i>
+                                                <span class="ms-1">{{ isCopied ? 'Copied!' : 'Copy' }}</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
+                            <div class="row mt-4">
                                 <div class="col-12">
-                                    <div class="form-group
-                                    ">
-                                        <label for="manager-admin-address">Manager Admin Address</label>
-                                        <input type="text" class="form-control" id="manager-admin-address" v-model="managerAdminAddress" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="form-group
-                                    ">
-                                        <label for="sma-fee">SMA Fee (ETH)</label>
-                                        <input type="text" class="form-control" id="sma-fee" v-model="smaFee" readonly>
+                                    <div class="form-group">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <label for="sma-fee" class="mb-0">SMA Fee (ETH)</label>
+                                            <button 
+                                                class="btn btn-link btn-sm ms-2 help-btn" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="right"
+                                                title="The fee charged for deploying a new Separately Managed Account. This fee covers the gas costs and protocol maintenance."
+                                                @click.stop
+                                            >
+                                                <img 
+                                                    src="../../../../assets/info-circle.svg" 
+                                                    class="info-icon" 
+                                                    alt="Info"
+                                                />
+                                            </button>
+                                        </div>
+                                        <label id="ETH-units"> 
+                                            <input type="text" class="form-control" id="sma-fee" v-model="smaFee" readonly>
+                                        </label>                                        
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <label for="best-rate-protocols">Best Rate Protocols</label>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <label for="best-rate-protocols" class="mb-0">Best Rate Protocols</label>
+                                            <button 
+                                                class="btn btn-link btn-sm ms-2 help-btn" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="right"
+                                                title="The protocols offering the highest yields for each supported token. These rates are updated in real-time to ensure optimal returns."
+                                                @click.stop
+                                            >
+                                                <img 
+                                                    src="../../../../assets/info-circle.svg" 
+                                                    class="info-icon" 
+                                                    alt="Info"
+                                                />
+                                            </button>
+                                        </div>
                                         <table class="table">
                                             <thead>
                                                 <tr>
@@ -173,7 +160,16 @@ export default {
                                             <tbody>
                                                 <tr v-for="protocol in bestRateProtocols">
                                                     <td>{{ protocol.tokenSymbol }}</td>
-                                                    <td>{{ protocol.tokenAddress }}</td>
+                                                    <td>
+                                                        <a 
+                                                            :href="getExplorerUrl(protocol.tokenAddress, true)" 
+                                                            target="_blank" 
+                                                            class="text-primary"
+                                                            style="word-break: break-all;"
+                                                        >
+                                                            {{ formatAddress(protocol.tokenAddress) }}
+                                                        </a>
+                                                    </td>
                                                     <td>{{ protocol.bestRateProtocol }}</td>
                                                 </tr>
                                             </tbody>
@@ -188,3 +184,125 @@ export default {
         </div>
     </div>
 </template>
+
+<style scoped>
+#oracle-view {
+    color: var(--text-primary);
+}
+
+#oracle-view h2 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+#oracle-view label {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+#oracle-view .form-control {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 1rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    height: 48px;
+}
+
+#oracle-view .form-control:read-only {
+    background-color: var(--card-background);
+    color: var(--text-primary);
+}
+
+#oracle-view .table {
+    color: #000000;
+    background-color: var(--card-background);
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+#oracle-view .table th {
+    color: #ffffff;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+    padding: 1rem;
+    text-align: left;
+}
+
+#oracle-view .table td {
+    color: #000000;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem;
+    font-size: 0.95rem;
+}
+
+#oracle-view .table tr:hover {
+    background-color: var(--hover-color);
+}
+
+#oracle-view .table tr:hover td {
+    color: #000000;
+}
+
+.form-group {
+    margin-bottom: 2rem;
+}
+
+.copy-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    height: 48px;
+    margin-top: 0.5rem;
+    min-width: 100px;
+}
+
+.copy-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.copy-button:active {
+    transform: translateY(0);
+}
+
+.ms-2 {
+    margin-left: 0.5rem;
+}
+
+.ms-1 {
+    margin-left: 0.25rem;
+}
+
+.help-btn {
+    padding: 0.25rem 0.5rem;
+    min-width: 32px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.help-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.info-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+</style>

@@ -13,16 +13,15 @@ export default {
     data() {
         return {
             isBusy: false,
-            assetAddresses: [],
-            clientAddress: '',
             smaAddress: this.contractAddress,
+            assetBalances: [],
         };
     },
     async mounted() {
         console.log("MOUNT");
-        //console.log("EVENTS: ", events);
-        this.smaAddress = await this.getWalletBalances();
-        //const userSMAData = await this.userSMAData();
+        this.isBusy = true;
+        this.assetBalances = await this.getWalletBalances();
+        this.isBusy = false;
     },
     methods: {
         async getWalletBalances() {
@@ -46,18 +45,21 @@ export default {
 
             let assetBalances = [];
             for (let i = 0; i < rawAssetBalances.length; i++) {
-                if (rawAssetBalances[i].tokenSymbol == 'USDC') {
+                if (rawAssetBalances[i].decimals < 18) {
                     assetBalances.push({
-                    address: rawAssetBalances[i].tokenAddress,
-                    symbol: rawAssetBalances[i].tokenSymbol,
-                    balance: ethers.formatEther(rawAssetBalances[i].balance) / 10 ** 6 
-                });
+                        address: rawAssetBalances[i].tokenAddress,
+                        symbol: rawAssetBalances[i].tokenSymbol,
+                        balance: ethers.formatEther(rawAssetBalances[i].balance) / (10 ** rawAssetBalances[i].decimals)
+                    });
                 }
-                assetBalances.push({
-                    address: rawAssetBalances[i].tokenAddress,
-                    symbol: rawAssetBalances[i].tokenSymbol,
-                    balance: ethers.formatEther(rawAssetBalances[i].balance)
-                });
+                else {
+                    assetBalances.push({
+                        address: rawAssetBalances[i].tokenAddress,
+                        symbol: rawAssetBalances[i].tokenSymbol,
+                        balance: ethers.formatEther(rawAssetBalances[i].balance)
+                    });
+                }
+
             }
             return assetBalances;
         },
@@ -66,10 +68,6 @@ export default {
 </script>
 <template>
     <form action="#" @submit.prevent="" @reset="resetForm" v-if="!isBusy">
-        <div class="form-group">
-            <label for="clientAddress">Client Address</label>
-            <input type="text" class="form-control" id="clientAddress" v-model="clientAddress" readonly>
-        </div>
         <div class="form-group">
             <label for="smaAddress">SMA Address</label>
             <input type="text" class="form-control" id="smaAddress" v-model="smaAddress" readonly>
