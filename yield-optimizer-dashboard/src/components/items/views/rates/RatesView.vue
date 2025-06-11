@@ -396,6 +396,20 @@ export default {
             </div>
         </div>
     </div>
+
+    <button 
+        class="btn btn-outline-primary btn-sm ms-3 refresh-btn" 
+        @click.stop="debouncedRefreshBalances"
+        :disabled="isFetchingBalances"
+        title="Refresh balances"
+    >
+        <img 
+            src="../../../assets/bootstrap-reboot.svg" 
+            class="refresh-icon" 
+            :class="{ 'spinning': isFetchingBalances }"
+            alt="Refresh"
+        />
+    </button>
 </template>
 
 <style scoped>

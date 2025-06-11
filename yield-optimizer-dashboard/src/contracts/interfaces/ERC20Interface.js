@@ -3,6 +3,7 @@
 import { ERC20ABI } from "../abi/ERC20ABI";
 
 import { readContract, writeContract } from "@wagmi/core";
+import contractCache from '@/utils/cache/ContractCache';
 
 export class ERC20Interface {
     constructor(network, account, config, address=null) {
@@ -17,8 +18,15 @@ export class ERC20Interface {
         }
     }
 
-    // Get the balance of the account
+    // Get the balance of the account with caching
     getBalance = async (address) => {
+        const cacheKey = contractCache.generateKey(this.address, 'balanceOf', [address]);
+        const cachedValue = contractCache.get(cacheKey);
+        
+        if (cachedValue) {
+            return cachedValue;
+        }
+
         const balance = await readContract(this.config, {
             abi: this.abi,
             address: this.address,
@@ -26,10 +34,19 @@ export class ERC20Interface {
             args: [address]
         });
 
+        contractCache.set(cacheKey, balance);
         return balance;
     }
 
+    // Get decimals with caching
     getDecimals = async () => {
+        const cacheKey = contractCache.generateKey(this.address, 'decimals');
+        const cachedValue = contractCache.get(cacheKey);
+        
+        if (cachedValue) {
+            return cachedValue;
+        }
+
         let abi = [
             {
                 type: 'function',
@@ -46,9 +63,11 @@ export class ERC20Interface {
             functionName: "decimals"
         });
 
+        contractCache.set(cacheKey, decimals);
         return decimals;
     }
 
+    // Write operations don't use cache
     approve = async (spender, amount) => {
         const tx = await writeContract(this.config, {
             abi: this.abi,
@@ -57,10 +76,20 @@ export class ERC20Interface {
             args: [spender, amount]
         });
 
+        // Clear cache after write operation
+        contractCache.clear();
         return tx;
     }
 
+    // Get allowance with caching
     allowance = async (owner, spender) => {
+        const cacheKey = contractCache.generateKey(this.address, 'allowance', [owner, spender]);
+        const cachedValue = contractCache.get(cacheKey);
+        
+        if (cachedValue) {
+            return cachedValue;
+        }
+
         const allowance = await readContract(this.config, {
             abi: this.abi,
             address: this.address,
@@ -68,6 +97,7 @@ export class ERC20Interface {
             args: [owner, spender]
         });
 
+        contractCache.set(cacheKey, allowance);
         return allowance;
     }
 }

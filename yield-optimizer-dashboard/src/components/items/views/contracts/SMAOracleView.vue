@@ -50,6 +50,18 @@ export default {
                 console.error('Failed to copy text: ', err);
             }
         },
+        getExplorerUrl(hash, isAddress = false) {
+            const account = getAccount(config);
+            if (!account) return '#';
+            
+            const chainId = account.chain.id;
+            const explorerUrl = config.chains.find(chain => chain.id === chainId)?.blockExplorers?.default?.url;
+            return explorerUrl ? `${explorerUrl}/${isAddress ? 'address' : 'tx'}/${hash}` : '#';
+        },
+        formatAddress(address) {
+            if (!address) return '';
+            return address;
+        },
     },
 };
 </script>
@@ -71,11 +83,19 @@ export default {
                                     <div class="form-group">
                                         <label for="oracle-address">Oracle Address</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" id="oracle-address"
-                                                v-model="oracleAddress" readonly>
+                                            <div class="form-control d-flex align-items-center">
+                                                <a 
+                                                    :href="getExplorerUrl(contractAddress, true)" 
+                                                    target="_blank" 
+                                                    class="text-primary text-decoration-none"
+                                                    style="word-break: break-all;"
+                                                >
+                                                    {{ formatAddress(contractAddress) }}
+                                                </a>
+                                            </div>
                                             <button 
                                                 class="btn btn-outline-primary btn-sm ms-2 copy-button" 
-                                                @click="copyToClipboard(oracleAddress)"
+                                                @click="copyToClipboard(contractAddress)"
                                                 :title="isCopied ? 'Copied!' : 'Copy address'"
                                             >
                                                 <i :class="['bi', isCopied ? 'bi-check-lg' : 'bi-clipboard']"></i>
@@ -110,7 +130,16 @@ export default {
                                             <tbody>
                                                 <tr v-for="protocol in bestRateProtocols">
                                                     <td>{{ protocol.tokenSymbol }}</td>
-                                                    <td>{{ protocol.tokenAddress }}</td>
+                                                    <td>
+                                                        <a 
+                                                            :href="getExplorerUrl(protocol.tokenAddress, true)" 
+                                                            target="_blank" 
+                                                            class="text-primary"
+                                                            style="word-break: break-all;"
+                                                        >
+                                                            {{ formatAddress(protocol.tokenAddress) }}
+                                                        </a>
+                                                    </td>
                                                     <td>{{ protocol.bestRateProtocol }}</td>
                                                 </tr>
                                             </tbody>

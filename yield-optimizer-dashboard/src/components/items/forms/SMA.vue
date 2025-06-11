@@ -8,6 +8,15 @@ import { ethers } from 'ethers';
 import { getAccount, getBalance, getTransactionReceipt } from '@wagmi/core';
 import { config } from '@/utils/configs/chainConfig.js';
 
+// Add debounce utility
+function debounce(fn, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
 export default {
     props: {
         contractAddress: String,
@@ -52,6 +61,8 @@ export default {
             allowedInterestTokens: this.allowedInterestTokens,
             txnReceipt: null,
             isFetchingBalance: false,
+            // Cache for token decimals
+            tokenDecimalsCache: new Map(),
         };
     },
     computed: {
@@ -91,6 +102,43 @@ export default {
         }
     },
     methods: {
+        // Add debounced refresh methods
+        debouncedRefreshBalances: debounce(function() {
+            this.fetchAllBalances();
+        }, 1000),
+
+        debouncedRefreshTransactions: debounce(function() {
+            this.fetchTransactions();
+        }, 1000),
+
+        // Add method to get decimals with caching
+        async getTokenDecimals(tokenAddress) {
+            if (this.tokenDecimalsCache.has(tokenAddress)) {
+                return this.tokenDecimalsCache.get(tokenAddress);
+            }
+
+            const account = getAccount(config);
+            if (!account) {
+                console.error('Account not found');
+                return 18; // Default to 18 decimals if account not found
+            }
+
+            const erc20Interface = new ERC20Interface(
+                account.chain.name,
+                account.address,
+                config,
+                tokenAddress
+            );
+
+            try {
+                const decimals = await erc20Interface.getDecimals();
+                this.tokenDecimalsCache.set(tokenAddress, decimals);
+                return decimals;
+            } catch (error) {
+                console.error('Error fetching decimals:', error);
+                return 18; // Default to 18 decimals on error
+            }
+        },
         async waitForTransactionConfirmation(txHash) {
             console.log("txHash: ", txHash);
             // if (!txHash) return null;
@@ -354,7 +402,6 @@ export default {
             console.log(smaBalances);
 
             try {
-                // Combine both token arrays
                 const allTokens = [
                     ...this.allowedBaseTokens.map(token => ({ ...token, type: 'base' })),
                     ...this.allowedInterestTokens.map(token => ({ ...token, type: 'interest' }))
@@ -362,24 +409,20 @@ export default {
 
                 console.log(allTokens);
 
+                // Create a Map of token addresses to balances for O(1) lookup
+                const smaBalanceMap = new Map(smaBalances.map(b => [b.tokenAddress, b.tokenBalance]));
+
                 const balancePromises = allTokens.map(async (token) => {
-                    let smaBalance = 0n; // Initialize smaBalance for each token
-                    for (let i = 0; i < smaBalances.length; i++) {
-                        if (smaBalances[i].tokenAddress === token.tokenAddress) {
-                            smaBalance = ethers.toBigInt(smaBalances[i].tokenBalance);
-                            console.log(smaBalance, token.tokenAddress);
-                        }
-                    }
+                    // Get SMA balance from map, defaulting to 0 if not found
+                    const smaBalance = ethers.toBigInt(smaBalanceMap.get(token.tokenAddress) || 0);
+                    console.log(smaBalance, token.tokenAddress);
 
                     let erc20balance = await getBalance(config, {address: account.address, token: token.tokenAddress});
                     let clientBalance = erc20balance.value;
                     clientBalance = ethers.toBigInt(clientBalance);
 
-                    // Get decimals from ERC20 interface
-                    const erc20Interface = new ERC20Interface(
-                        account.chain.name, account.address, config, token.tokenAddress
-                    );
-                    const decimals = await erc20Interface.getDecimals();
+                    // Use cached decimals
+                    const decimals = await this.getTokenDecimals(token.tokenAddress);
 
                     console.log(token.tokenAddress, token.tokenSymbol, smaBalance, clientBalance, decimals);
 
@@ -401,9 +444,6 @@ export default {
             } finally {
                 this.isFetchingBalances = false;
             }
-        },
-        async refreshBalances() {
-            await this.fetchAllBalances();
         },
         async fetchTransactions() {
             if (this.isFetchingTransactions) return;
@@ -433,11 +473,8 @@ export default {
                 
                 // Map API response to transaction objects with formatted amounts
                 this.transactions = await Promise.all(txnHistory.map(async tx => {
-                    // Get decimals for the token
-                    const erc20Interface = new ERC20Interface(
-                        account.chain.name, account.address, config, tx.token_address
-                    );
-                    const decimals = await erc20Interface.getDecimals();
+                    // Use cached decimals
+                    const decimals = await this.getTokenDecimals(tx.token_address);
                     
                     return {
                         type: tx.type,
@@ -448,7 +485,7 @@ export default {
                         from: tx.from,
                         to: tx.to,
                         tokenAddress: tx.token_address,
-                        status: 'success' // Since these are confirmed transactions
+                        status: 'success'
                     };
                 }));
 
@@ -470,9 +507,6 @@ export default {
         formatAmount(amount) {
             return amount.toFixed(6);
         },
-        async refreshTransactions() {
-            await this.fetchTransactions();
-        },
         getTransactionTypeClass(type) {
             return type === 'Transfer' ? 'badge-transfer' : 'badge-invest';
         },
@@ -488,14 +522,14 @@ export default {
                     return '';
             }
         },
-        getExplorerUrl(hash) {
+        getExplorerUrl(hash, isAddress = false) {
             const account = getAccount(config);
             if (!account) return '#';
             
             const chainId = account.chain.id;
             const explorerUrl = config.chains.find(chain => chain.id === chainId)?.blockExplorers?.default?.url;
             console.log("explorerUrl: ", explorerUrl);
-            return explorerUrl ? `${explorerUrl}/tx/${hash}` : '#';
+            return explorerUrl ? `${explorerUrl}/${isAddress ? 'address' : 'tx'}/${hash}` : '#';
         },
         async copyToClipboard(text) {
             try {
@@ -508,9 +542,9 @@ export default {
                 console.error('Failed to copy text: ', err);
             }
         },
-        formatAddress(address) {
+        formatAddress(address, full = false) {
             if (!address) return '';
-            return `${address.slice(0, 6)}...${address.slice(-4)}`;
+            return full ? address : `${address.slice(0, 6)}...${address.slice(-4)}`;
         },
         formatHash(hash) {
             if (!hash) return '';
@@ -527,8 +561,8 @@ export default {
         txnReceipt: {
             handler: async function() {
                 await Promise.all([
-                    this.refreshBalances(),
-                    this.refreshTransactions()
+                    this.debouncedRefreshBalances(),
+                    this.debouncedRefreshTransactions()
                 ]);
             },
             deep: true
@@ -572,7 +606,16 @@ export default {
                 <div>
                     <h2 class="mb-2">Separately Managed Account</h2>
                     <div class="d-flex align-items-center">
-                        <code class="contract-address">{{ formatAddress(smaAddress) }}</code>
+                        <code class="contract-address">
+                            <a 
+                                :href="getExplorerUrl(smaAddress, true)" 
+                                target="_blank" 
+                                class="text-primary"
+                                style="word-break: break-all;"
+                            >
+                                {{ formatAddress(smaAddress, true) }}
+                            </a>
+                        </code>
                         <button 
                             class="btn btn-outline-primary btn-sm ms-2 copy-button" 
                             @click="copyToClipboard(smaAddress)"
@@ -600,7 +643,7 @@ export default {
                         <h3 class="mb-0">Balances</h3>
                         <button 
                             class="btn btn-outline-primary btn-sm ms-3 refresh-btn" 
-                            @click.stop="fetchAllBalances"
+                            @click.stop="debouncedRefreshBalances"
                             :disabled="isFetchingBalances"
                             title="Refresh balances"
                         >
@@ -640,7 +683,15 @@ export default {
                             </thead>
                             <tbody>
                                 <tr v-for="balance in balances" :key="balance.address">
-                                    <td>{{ balance.symbol }}</td>
+                                    <td>
+                                        <a 
+                                            :href="getExplorerUrl(balance.address, true)" 
+                                            target="_blank" 
+                                            class="text-primary"
+                                        >
+                                            {{ balance.symbol }}
+                                        </a>
+                                    </td>
                                     <td>
                                         <span :class="['badge', balance.type === 'base' ? 'badge-primary' : 'badge-secondary']">
                                             {{ balance.type }}
@@ -913,7 +964,7 @@ export default {
                         <h3 class="mb-0">Transaction History</h3>
                         <button 
                             class="btn btn-outline-primary btn-sm ms-3 refresh-btn" 
-                            @click.stop="fetchTransactions"
+                            @click.stop="debouncedRefreshTransactions"
                             :disabled="isFetchingTransactions"
                             title="Refresh transactions"
                         >
@@ -963,8 +1014,24 @@ export default {
                                     </td>
                                     <td>{{ tx.tokenSymbol }}</td>
                                     <td class="text-end">{{ formatAmount(tx.amount) }}</td>
-                                    <td>{{ formatAddress(tx.from) }}</td>
-                                    <td>{{ formatAddress(tx.to) }}</td>
+                                    <td>
+                                        <a 
+                                            :href="getExplorerUrl(tx.from, true)" 
+                                            target="_blank" 
+                                            class="text-primary"
+                                        >
+                                            {{ formatAddress(tx.from) }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a 
+                                            :href="getExplorerUrl(tx.to, true)" 
+                                            target="_blank" 
+                                            class="text-primary"
+                                        >
+                                            {{ formatAddress(tx.to) }}
+                                        </a>
+                                    </td>
                                     <td>
                                         <span :class="['badge', getStatusClass(tx.status)]">
                                             {{ tx.status }}
@@ -1510,6 +1577,12 @@ select.form-control {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 .refresh-icon {
