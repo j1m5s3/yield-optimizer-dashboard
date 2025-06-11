@@ -197,7 +197,7 @@ export default {
     <div id="dashboard">
         <div class="row" v-if="showFactory || showSMA">
             <div class="col">
-                <div class="card no-bottom-border" title="SMA Fees and Rates">
+                <div class="card no-bottom-border">
                     <div class="card-header" @click="isOracleSectionCollapsed = !isOracleSectionCollapsed" style="cursor: pointer;">
                         <div class="d-flex justify-content-between align-items-center">
                             <h3 class="mb-0">SMA Fees and Rates</h3>
@@ -215,7 +215,7 @@ export default {
         </div>
         <div class="row" v-if="showFactory">
             <div class="col">
-                <div class="card" title="Deploy SMA">
+                <div class="card">
                     <SMAFactory 
                         :contractAddress="factoryAddress" 
                         :sma-fee="fee"
@@ -226,7 +226,7 @@ export default {
         </div>
         <div class="row" v-if="showSMA">
             <div class="col">
-                <div class="card no-bottom-border" title="SMA">
+                <div class="card no-bottom-border">
                     <SMAView :contractAddress="smaAddress" />
                     <SMA :contractAddress="smaAddress" :allowed-base-tokens="allowedBaseTokens" :allowed-interest-tokens="allowedInterestTokens"/>
                 </div>

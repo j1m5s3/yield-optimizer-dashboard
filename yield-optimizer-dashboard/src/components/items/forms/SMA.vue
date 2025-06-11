@@ -3,6 +3,8 @@ import { SMAInterface } from '@/contracts/interfaces/SMAInterface.js';
 import { ERC20Interface } from '@/contracts/interfaces/ERC20Interface.js';
 import { SMAFactoryInterface } from '@/contracts/interfaces/SMAFactoryInterface.js';
 import { getTransactionHistory } from '@/utils/apis/DataApi.js';
+import { Tooltip } from 'bootstrap';
+import { ref, onMounted } from 'vue';
 
 import { ethers } from 'ethers';
 import { getAccount, getBalance, getTransactionReceipt } from '@wagmi/core';
@@ -55,6 +57,11 @@ export default {
             isTransactionsCollapsed: true,
             transactions: [],
             isFetchingTransactions: false,
+            // Pagination properties
+            currentPage: 1,
+            pageSize: 10,
+            pageSizeOptions: [5, 10, 25, 50],
+            totalTransactions: 0,
             // Common properties
             clientAddress: '',
             smaAddress: this.contractAddress,
@@ -100,6 +107,20 @@ export default {
         },
         isBaseToken() {
             return this.allowedBaseTokens.some(token => token.tokenAddress === this.investAssetAddress);
+        },
+        paginatedTransactions() {
+            const start = (this.currentPage - 1) * this.pageSize;
+            const end = start + this.pageSize;
+            return this.transactions.slice(start, end);
+        },
+        totalPages() {
+            return Math.ceil(this.transactions.length / this.pageSize);
+        },
+        hasNextPage() {
+            return this.currentPage < this.totalPages;
+        },
+        hasPreviousPage() {
+            return this.currentPage > 1;
         }
     },
     methods: {
@@ -559,12 +580,37 @@ export default {
             this.isBalancesCollapsed = this.isAllCollapsed;
             this.isTransactionsCollapsed = this.isAllCollapsed;
         },
+        changePageSize(newSize) {
+            this.pageSize = parseInt(newSize);
+            this.currentPage = 1; // Reset to first page when changing page size
+        },
+        nextPage() {
+            if (this.hasNextPage) {
+                this.currentPage++;
+            }
+        },
+        previousPage() {
+            if (this.hasPreviousPage) {
+                this.currentPage--;
+            }
+        },
+        goToPage(page) {
+            if (page >= 1 && page <= this.totalPages) {
+                this.currentPage = page;
+            }
+        },
     },
     async mounted() {
         await Promise.all([
             this.fetchAllBalances(),
             this.fetchTransactions()
         ]);
+
+        // Initialize tooltips after content is loaded
+        this.$nextTick(() => {
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            [...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
+        });
     },
     watch: {
         txnReceipt: {
@@ -683,6 +729,19 @@ export default {
                                 alt="Refresh"
                             />
                         </button>
+                        <button 
+                            class="btn btn-outline-secondary btn-sm ms-2 help-btn" 
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="right"
+                            title="View your current holdings in both SMA and wallet, including investment derivatives. Refresh data anytime to see the latest balances."
+                            @click.stop
+                        >
+                            <img 
+                                src="../../../assets/info-circle.svg" 
+                                class="info-icon" 
+                                alt="Info"
+                            />
+                        </button>
                     </div>
                     <i :class="['fas', isBalancesCollapsed ? 'fa-chevron-down' : 'fa-chevron-up']"></i>
                 </div>
@@ -744,7 +803,22 @@ export default {
         <div class="section">
             <div class="section-header" @click="isTransferCollapsed = !isTransferCollapsed" style="cursor: pointer;">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">Transfer Assets</h3>
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0">Transfer Assets</h3>
+                        <button 
+                            class="btn btn-outline-secondary btn-sm ms-2 help-btn" 
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="right"
+                            title="Move assets between your wallet and SMA. Easily deposit or withdraw funds with real-time balance updates."
+                            @click.stop
+                        >
+                            <img 
+                                src="../../../assets/info-circle.svg" 
+                                class="info-icon" 
+                                alt="Info"
+                            />
+                        </button>
+                    </div>
                     <i :class="['fas', isTransferCollapsed ? 'fa-chevron-down' : 'fa-chevron-up']"></i>
                 </div>
             </div>
@@ -851,7 +925,22 @@ export default {
         <div class="section">
             <div class="section-header" @click="isInvestCollapsed = !isInvestCollapsed" style="cursor: pointer;">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">Invest Assets</h3>
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0">Invest Assets</h3>
+                        <button 
+                            class="btn btn-outline-secondary btn-sm ms-2 help-btn" 
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="right"
+                            title="Optimize yields by moving assets between protocols. Select an asset and choose source/destination protocols for one-click investment."
+                            @click.stop
+                        >
+                            <img 
+                                src="../../../assets/info-circle.svg" 
+                                class="info-icon" 
+                                alt="Info"
+                            />
+                        </button>
+                    </div>
                     <i :class="['fas', isInvestCollapsed ? 'fa-chevron-down' : 'fa-chevron-up']"></i>
                 </div>
             </div>
@@ -956,6 +1045,19 @@ export default {
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
                         <h3 class="mb-0">Active Management</h3>
+                        <button 
+                            class="btn btn-outline-secondary btn-sm ms-2 help-btn" 
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="right"
+                            title="Enable automated optimization of your investments. The system will automatically rebalance positions for optimal yields."
+                            @click.stop
+                        >
+                            <img 
+                                src="../../../assets/info-circle.svg" 
+                                class="info-icon" 
+                                alt="Info"
+                            />
+                        </button>
                         <span :class="['status-indicator ms-2', isActiveManagement ? 'status-active' : 'status-inactive']"></span>
                     </div>
                     <i :class="['fas', isActiveManagementCollapsed ? 'fa-chevron-down' : 'fa-chevron-up']"></i>
@@ -1004,6 +1106,19 @@ export default {
                                 alt="Refresh"
                             />
                         </button>
+                        <button 
+                            class="btn btn-outline-secondary btn-sm ms-2 help-btn" 
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="right"
+                            title="View a complete record of all activities within your SMA. Track transfers, investments, and management actions."
+                            @click.stop
+                        >
+                            <img 
+                                src="../../../assets/info-circle.svg" 
+                                class="info-icon" 
+                                alt="Info"
+                            />
+                        </button>
                     </div>
                     <i :class="['fas', isTransactionsCollapsed ? 'fa-chevron-down' : 'fa-chevron-up']"></i>
                 </div>
@@ -1035,7 +1150,7 @@ export default {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="tx in transactions" :key="tx.hash">
+                                <tr v-for="tx in paginatedTransactions" :key="tx.hash">
                                     <td>
                                         <span :class="['badge', getTransactionTypeClass(tx.type)]">
                                             {{ tx.type }}
@@ -1082,6 +1197,58 @@ export default {
                                 </tr>
                             </tbody>
                         </table>
+                        
+                        <!-- Pagination Controls -->
+                        <div v-if="transactions.length > 0" class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="d-flex align-items-center">
+                                <span class="me-2">Show</span>
+                                <select 
+                                    class="form-select form-select-sm" 
+                                    style="width: auto;"
+                                    v-model="pageSize"
+                                    @change="changePageSize($event.target.value)"
+                                >
+                                    <option v-for="size in pageSizeOptions" :key="size" :value="size">
+                                        {{ size }}
+                                    </option>
+                                </select>
+                                <span class="ms-2">entries</span>
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <span class="me-3">
+                                    Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, transactions.length) }} of {{ transactions.length }} entries
+                                </span>
+                                
+                                <div class="btn-group">
+                                    <button 
+                                        class="btn btn-outline-secondary btn-sm" 
+                                        :disabled="!hasPreviousPage"
+                                        @click="previousPage"
+                                    >
+                                        Previous
+                                    </button>
+                                    
+                                    <button 
+                                        v-for="page in totalPages" 
+                                        :key="page"
+                                        class="btn btn-outline-secondary btn-sm"
+                                        :class="{ 'active': page === currentPage }"
+                                        @click="goToPage(page)"
+                                    >
+                                        {{ page }}
+                                    </button>
+                                    
+                                    <button 
+                                        class="btn btn-outline-secondary btn-sm" 
+                                        :disabled="!hasNextPage"
+                                        @click="nextPage"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1237,7 +1404,7 @@ select.form-control {
 
 .btn-secondary:hover {
     background-color: var(--hover-color);
-    transform: translateY(-1px);
+    color: var(--text-primary);
 }
 
 .input-group {
@@ -1671,5 +1838,52 @@ select.form-control {
     width: 16px;
     height: 16px;
     transition: transform 0.3s ease;
+}
+
+.help-btn {
+    padding: 0.25rem 0.5rem;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background: transparent;
+    border: none;
+}
+
+.help-btn:hover {
+    color: var(--primary-color);
+    background: rgba(var(--primary-rgb), 0.1);
+}
+
+.info-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.help-btn:hover .info-icon {
+    opacity: 1;
+}
+
+/* Ensure tooltips are visible above other elements */
+.tooltip {
+    z-index: 1070;
+}
+
+.tooltip-inner {
+    max-width: 300px;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    font-weight: 500;
 }
 </style>

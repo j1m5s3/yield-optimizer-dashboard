@@ -108,7 +108,22 @@ export default {
                             <div class="row mt-4">
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <label for="sma-fee">SMA Fee (ETH)</label>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <label for="sma-fee" class="mb-0">SMA Fee (ETH)</label>
+                                            <button 
+                                                class="btn btn-link btn-sm ms-2 help-btn" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="right"
+                                                title="The fee charged for deploying a new Separately Managed Account. This fee covers the gas costs and protocol maintenance."
+                                                @click.stop
+                                            >
+                                                <img 
+                                                    src="../../../../assets/info-circle.svg" 
+                                                    class="info-icon" 
+                                                    alt="Info"
+                                                />
+                                            </button>
+                                        </div>
                                         <label id="ETH-units"> 
                                             <input type="text" class="form-control" id="sma-fee" v-model="smaFee" readonly>
                                         </label>                                        
@@ -118,7 +133,22 @@ export default {
                             <div class="row">
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <label for="best-rate-protocols">Best Rate Protocols</label>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <label for="best-rate-protocols" class="mb-0">Best Rate Protocols</label>
+                                            <button 
+                                                class="btn btn-link btn-sm ms-2 help-btn" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="right"
+                                                title="The protocols offering the highest yields for each supported token. These rates are updated in real-time to ensure optimal returns."
+                                                @click.stop
+                                            >
+                                                <img 
+                                                    src="../../../../assets/info-circle.svg" 
+                                                    class="info-icon" 
+                                                    alt="Info"
+                                                />
+                                            </button>
+                                        </div>
                                         <table class="table">
                                             <thead>
                                                 <tr>
@@ -253,5 +283,26 @@ export default {
 
 .ms-1 {
     margin-left: 0.25rem;
+}
+
+.help-btn {
+    padding: 0.25rem 0.5rem;
+    min-width: 32px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.help-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.info-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
 }
 </style>
