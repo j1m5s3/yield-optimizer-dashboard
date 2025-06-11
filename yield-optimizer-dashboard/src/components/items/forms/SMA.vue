@@ -28,30 +28,31 @@ export default {
             isBusy: false,
             // Header properties
             isCopied: false,
+            isAllCollapsed: true,
             // Transfer section properties
             transferAssetAddress: '',
             transferAmount: 0,
             transferMaxAmount: 0,
             transferDirection: 'toClient',
             isTransferLoading: false,
-            isTransferCollapsed: false,
+            isTransferCollapsed: true,
             // Invest section properties
             investAssetAddress: '',
             fromProtocol: '',
             toProtocol: '',
             isInvestLoading: false,
-            isInvestCollapsed: false,
+            isInvestCollapsed: true,
             investError: '',
             // Active Management properties
             isActiveManagement: false,
-            isActiveManagementCollapsed: false,
+            isActiveManagementCollapsed: true,
             isActiveManagementLoading: false,
             // Balances section properties
-            isBalancesCollapsed: false,
+            isBalancesCollapsed: true,
             balances: [],
             isFetchingBalances: false,
             // Transactions section properties
-            isTransactionsCollapsed: false,
+            isTransactionsCollapsed: true,
             transactions: [],
             isFetchingTransactions: false,
             // Common properties
@@ -549,7 +550,15 @@ export default {
         formatHash(hash) {
             if (!hash) return '';
             return `${hash.slice(0, 8)}...${hash.slice(-4)}`;
-        }
+        },
+        toggleAllSections() {
+            this.isAllCollapsed = !this.isAllCollapsed;
+            this.isTransferCollapsed = this.isAllCollapsed;
+            this.isInvestCollapsed = this.isAllCollapsed;
+            this.isActiveManagementCollapsed = this.isAllCollapsed;
+            this.isBalancesCollapsed = this.isAllCollapsed;
+            this.isTransactionsCollapsed = this.isAllCollapsed;
+        },
     },
     async mounted() {
         await Promise.all([
@@ -626,11 +635,31 @@ export default {
                         </button>
                     </div>
                 </div>
-                <div class="sma-status">
-                    <span class="badge badge-success">
-                        <i class="bi bi-circle-fill me-1"></i>
-                        Active
-                    </span>
+                <div class="d-flex align-items-center gap-2">
+                    <button 
+                        class="btn btn-outline-primary btn-sm collapse-all-btn" 
+                        @click="toggleAllSections"
+                        :title="isAllCollapsed ? 'Expand All' : 'Collapse All'"
+                    >
+                        <img 
+                            v-if="isAllCollapsed"
+                            src="../../../assets/arrows-expand.svg" 
+                            class="collapse-icon" 
+                            alt="Expand all"
+                        />
+                        <img 
+                            v-else
+                            src="../../../assets/arrows-collapse.svg" 
+                            class="collapse-icon spinning" 
+                            alt="Collapse all"
+                        />
+                    </button>
+                    <div class="sma-status">
+                        <span class="badge badge-success">
+                            <i class="bi bi-circle-fill me-1"></i>
+                            Active
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1622,5 +1651,25 @@ select.form-control {
 .loading-text {
     color: var(--text-secondary);
     font-size: 0.875rem;
+}
+
+.collapse-all-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    min-width: 32px;
+    height: 28px;
+    transition: all 0.2s ease;
+}
+
+.collapse-all-btn:hover {
+    transform: translateY(-1px);
+}
+
+.collapse-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
 }
 </style>

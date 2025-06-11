@@ -8,7 +8,7 @@ import { config } from '@/utils/configs/chainConfig.js'
 import { useWeb3ModalEvents } from '@web3modal/wagmi/vue';
 import { useAccount } from '@wagmi/vue'
 
-import { computed, reactive, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 // Reconnect wallet on page refresh
 reconnect(config);
@@ -24,33 +24,42 @@ createWeb3Modal({
 });
 
 const events = useWeb3ModalEvents();
-console.log("EVENTS: ", events);
 
 const acct = useAccount();
 const showDashboard = ref(false);
-console.log("acct: ", acct);
+const currentView = ref('rates');
+const isLoading = ref(false);
+
+// Debug connection status
+console.log('Initial account status:', acct.status);
+console.log('Initial account address:', acct.address);
 
 watch(events, (newEvent, oldEvent) => {
-  console.log(`EVENTS --> OLD ${oldEvent.data['event']} --> NEW ${newEvent.data['event']}`);
+  console.log('Web3Modal event:', newEvent.data['event']);
   if (newEvent.data['event'] == "CONNECT_SUCCESS") {
-    console.log("EVENTS CONNECTED");
     showDashboard.value = true;
   } else if (newEvent.data['event'] == "DISCONNECT_SUCCESS") {
-    console.log("EVENTS DISCONNECTED");
     showDashboard.value = false;
   }
 });
 
 watch(acct.status, (newStatus, oldStatus) => {
-  console.log("STATUS");
-  console.log("OLD STATUS: ", oldStatus);
-  console.log("NEW STATUS: ", newStatus);
+  console.log('Account status changed:', { oldStatus, newStatus });
+  console.log('Current account address:', acct.address);
   if (newStatus == "connected") {
     showDashboard.value = true;
   } else {
     showDashboard.value = false;
   }
 }, { immediate: true });
+
+const handleViewChange = async (view) => {
+  isLoading.value = true;
+  currentView.value = view;
+  // Add a small delay to ensure smooth transition
+  await new Promise(resolve => setTimeout(resolve, 300));
+  isLoading.value = false;
+};
 
 </script>
 
@@ -64,7 +73,27 @@ watch(acct.status, (newStatus, oldStatus) => {
             <img src="./assets/robot_trading_logo_cropped.png" alt="Logo" class="header-logo me-3" />
             <h1>Yield Optimizer Dashboard</h1>
           </div>
-          <w3m-button size="md" />
+          <div class="d-flex align-items-center gap-3">
+            <div class="nav-tabs">
+              <button 
+                class="nav-tab" 
+                :class="{ active: currentView === 'rates' }"
+                @click="handleViewChange('rates')"
+              >
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">Rates</span>
+              </button>
+              <button 
+                class="nav-tab" 
+                :class="{ active: currentView === 'sma' }"
+                @click="handleViewChange('sma')"
+              >
+                <span class="tab-icon">🤖</span>
+                <span class="tab-label">SMA</span>
+              </button>
+            </div>
+            <w3m-button size="md" />
+          </div>
         </div>
       </div>
     </header>
@@ -72,7 +101,24 @@ watch(acct.status, (newStatus, oldStatus) => {
       <div class="container-fluid">
         <div class="row mt-4">
           <div class="col-12">
-            <UserDashboard v-model="showDashboard" v-if="showDashboard" />
+            <div class="content-area">
+              <div v-if="isLoading" class="view-loading">
+                <div class="spinner"></div>
+              </div>
+              <div v-else>
+                <RatesView v-if="currentView === 'rates'" />
+                <template v-if="currentView === 'sma'">
+                  <UserDashboard v-if="showDashboard" />
+                  <div v-else class="connect-message">
+                    <div class="message-content">
+                      <span class="message-icon">🔒</span>
+                      <h2>Connect Your Wallet</h2>
+                      <p>Please connect your wallet to access the SMA dashboard</p>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -110,6 +156,84 @@ header h1 {
   color: var(--text-primary);
 }
 
+.nav-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-tab {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-tab:hover {
+  background-color: var(--hover-color);
+}
+
+.nav-tab.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.view-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.connect-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.message-content {
+  text-align: center;
+  padding: 2rem;
+}
+
+.message-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.message-content h2 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.message-content p {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
 @media (max-width: 768px) {
   .header-logo {
     height: 32px;
@@ -117,6 +241,18 @@ header h1 {
   }
   
   header h1 {
+    font-size: 1.25rem;
+  }
+
+  .message-content {
+    padding: 1rem;
+  }
+
+  .message-icon {
+    font-size: 2rem;
+  }
+
+  .message-content h2 {
     font-size: 1.25rem;
   }
 }
