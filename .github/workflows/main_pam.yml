@@ -42,7 +42,7 @@ jobs:
 
       - name: Zip artifact for deployment
         run: |
-          ls -la
+          cd ./yield-optimizer-dashboard
           zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
