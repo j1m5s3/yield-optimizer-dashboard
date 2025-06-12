@@ -23,8 +23,11 @@ jobs:
         with:
           node-version: '22.x'
 
+      - name: Show current path and directory
+        run: pwd & ls -la 
+
       - name: Navigate to root
-        run: cd ./yield-optimizer-dashboard
+        run: cd ./yield-optimizer-dashboard & ls -la
 
       - name: npm install, build, and test
         run: |
