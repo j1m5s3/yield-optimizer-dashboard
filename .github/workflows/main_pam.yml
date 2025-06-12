@@ -26,7 +26,8 @@ jobs:
       - name: Show current path and directory
         run: |
           pwd
-          ls -la 
+          ls -la
+          env
 
       - name: Navigate to root
         run: |
