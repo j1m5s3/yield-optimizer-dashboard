@@ -23,6 +23,9 @@ jobs:
         with:
           node-version: '22.x'
 
+      - name: Navigate to root
+        run: cd ./yield-optimizer-dashboard
+
       - name: npm install, build, and test
         run: |
           npm install
