@@ -42,14 +42,14 @@ jobs:
 
       - name: Zip artifact for deployment
         run: |
-          cd ./yield-optimizer-dashboard
+          cd ./yield-optimizer-dashboard/dist
           zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./yield-optimizer-dashboard/release.zip
+          path: ./yield-optimizer-dashboard/dist/release.zip
 
   deploy:
     runs-on: ubuntu-latest
