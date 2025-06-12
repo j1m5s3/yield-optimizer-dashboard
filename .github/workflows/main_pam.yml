@@ -44,7 +44,7 @@ jobs:
           cd ./yield-optimizer-dashboard
           echo $VITE_BOT_API_URL
           echo "VITE_BOT_API_URL=$VITE_BOT_API_URL\nVITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
-          ls
+          ls -la
           npm install
           npm run build --if-present
           npm run test --if-present
