@@ -659,27 +659,22 @@ export default {
         <div class="sma-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="mb-2">Separately Managed Account</h2>
-                    <div class="d-flex align-items-center">
-                        <code class="contract-address">
+                    <h2 class="mb-2">
+                        <div class="d-flex align-items-center">
+                            Separately Managed Account
                             <a 
                                 :href="getExplorerUrl(smaAddress, true)" 
                                 target="_blank" 
-                                class="text-primary"
-                                style="word-break: break-all;"
+                                class="text-primary text-decoration-none ms-2"
                             >
-                                {{ formatAddress(smaAddress, true) }}
+                                <img 
+                                    src="../../../assets/link.svg" 
+                                    class="link-icon" 
+                                    alt="External link"
+                                />
                             </a>
-                        </code>
-                        <button 
-                            class="btn btn-outline-primary btn-sm ms-2 copy-button" 
-                            @click="copyToClipboard(smaAddress)"
-                            :title="isCopied ? 'Copied!' : 'Copy address'"
-                        >
-                            <i :class="['bi', isCopied ? 'bi-check-lg' : 'bi-clipboard']"></i>
-                            <span class="ms-1">{{ isCopied ? 'Copied!' : 'Copy' }}</span>
-                        </button>
-                    </div>
+                        </div>
+                    </h2>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <button 
@@ -1585,24 +1580,61 @@ select.form-control {
 }
 
 .table {
-    color: var(--text-primary);
+    width: 100%;
     margin-bottom: 0;
+    color: var(--text-primary);
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .table th {
     font-weight: 600;
-    border-bottom: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
     padding: 0.75rem;
+    white-space: nowrap;
 }
 
 .table td {
     padding: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.table tbody tr:last-child td {
-    border-bottom: none;
+.table tbody tr:hover {
+    background-color: var(--hover-background);
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.35rem 0.65rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.badge-transfer {
+    background-color: #198754;
+    color: white;
+}
+
+.badge-invest {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.badge-success {
+    background-color: #198754;
+    color: white;
+}
+
+.badge-pending {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.badge-failed {
+    background-color: #dc3545;
+    color: white;
 }
 
 .btn-link {
@@ -1642,34 +1674,19 @@ select.form-control {
 }
 
 .badge {
-    padding: 0.5em 0.75em;
-    font-size: 0.75em;
-    font-weight: 600;
-    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
 }
 
-.badge-transfer {
+.badge-primary {
     background-color: var(--primary-color);
     color: white;
 }
 
-.badge-invest {
+.badge-secondary {
     background-color: var(--secondary-color);
-    color: white;
-}
-
-.badge-success {
-    background-color: #28a745;
-    color: white;
-}
-
-.badge-pending {
-    background-color: #ffc107;
-    color: #212529;
-}
-
-.badge-failed {
-    background-color: #dc3545;
     color: white;
 }
 
@@ -1760,84 +1777,23 @@ select.form-control {
 }
 
 .management-description {
-    color: var(--text-secondary);
     font-size: 0.875rem;
+    color: var(--text-secondary);
     margin-bottom: 1rem;
-    line-height: 1.5;
 }
 
-.refresh-btn {
-    padding: 0.25rem 0.5rem;
-    min-width: 32px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.refresh-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.refresh-icon {
-    width: 16px;
-    height: 16px;
-    transition: transform 0.3s ease;
-}
-
-.spinning {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
-    width: 100%;
-}
-
-.spinner-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-}
-
-.loading-text {
-    color: var(--text-secondary);
+.toggle-button {
     font-size: 0.875rem;
+    padding: 0.5rem 1.5rem;
+    height: 42px;
+    min-width: 120px;
 }
 
-.collapse-all-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem;
-    min-width: 32px;
-    height: 28px;
-    transition: all 0.2s ease;
-}
-
-.collapse-all-btn:hover {
-    transform: translateY(-1px);
-}
-
-.collapse-icon {
+.link-icon {
     width: 16px;
     height: 16px;
-    transition: transform 0.3s ease;
+    opacity: 1;
+    filter: invert(32%) sepia(98%) saturate(1234%) hue-rotate(202deg) brightness(97%) contrast(101%);
 }
 
 .help-btn {
@@ -1870,20 +1826,233 @@ select.form-control {
     opacity: 1;
 }
 
-/* Ensure tooltips are visible above other elements */
-.tooltip {
-    z-index: 1070;
+.refresh-btn {
+    padding: 0.25rem 0.5rem;
+    min-width: 32px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    background: transparent;
+    border: none;
 }
 
-.tooltip-inner {
-    max-width: 300px;
-    padding: 0.75rem 1rem;
-    color: var(--text-primary);
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    font-size: 0.875rem;
-    line-height: 1.4;
-    font-weight: 500;
+.refresh-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.refresh-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 768px) {
+    .sma-form {
+        padding: 1rem;
+    }
+
+    .sma-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .sma-header h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .sma-header .d-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.5rem;
+    }
+
+    .sma-header .d-flex > div:last-child {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .collapse-all-btn {
+        padding: 0.25rem 0.5rem;
+    }
+
+    .collapse-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .sma-status .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .sma-status .badge i {
+        font-size: 0.625rem;
+    }
+
+    .section-header {
+        padding: 0.75rem;
+    }
+
+    .section-header h3 {
+        font-size: 1.125rem;
+    }
+
+    .section-body {
+        padding: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-control {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+        height: 36px;
+    }
+
+    .form-label {
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .table {
+        font-size: 0.75rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.5rem;
+    }
+
+    .badge {
+        font-size: 0.6875rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .help-btn {
+        padding: 0.25rem;
+        min-width: 24px;
+        height: 24px;
+    }
+
+    .info-icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .refresh-btn {
+        padding: 0.25rem;
+        min-width: 24px;
+        height: 24px;
+    }
+
+    .refresh-icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .loading-text {
+        font-size: 0.875rem;
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .button-group .btn {
+        width: 100%;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .pagination .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .table-responsive {
+        margin: 0 -1rem;
+        padding: 0 1rem;
+        width: calc(100% + 2rem);
+    }
+}
+
+@media (max-width: 480px) {
+    .sma-form {
+        padding: 0.75rem;
+    }
+
+    .sma-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .section-header {
+        padding: 0.5rem;
+    }
+
+    .section-header h3 {
+        font-size: 1rem;
+    }
+
+    .section-body {
+        padding: 0.75rem;
+    }
+
+    .form-control {
+        font-size: 0.8125rem;
+        height: 34px;
+    }
+
+    .btn {
+        font-size: 0.8125rem;
+    }
+
+    .table {
+        font-size: 0.6875rem;
+    }
+
+    .badge {
+        font-size: 0.625rem;
+        padding: 0.2rem 0.4rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.375rem;
+    }
 }
 </style>

@@ -137,7 +137,7 @@ const handleViewChange = async (view) => {
 }
 
 main {
-  padding-top: 80px;
+  padding-top: 100px;
 }
 
 header {
@@ -267,6 +267,10 @@ header h1 {
 }
 
 @media (max-width: 768px) {
+  main {
+    padding-top: 120px;
+  }
+
   header {
     padding: 0.75rem 0;
   }
@@ -311,7 +315,7 @@ header h1 {
   }
 
   .message-icon {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
 
   .message-content h2 {
@@ -320,17 +324,30 @@ header h1 {
 }
 
 @media (max-width: 480px) {
-  .container-fluid {
-    padding: 0 1rem;
+  main {
+    padding-top: 140px;
+  }
+
+  header {
+    padding: 0.5rem 0;
+  }
+
+  .header-content {
+    gap: 0.5rem;
+  }
+
+  .header-logo {
+    height: 28px;
+    width: 28px;
+  }
+
+  header h1 {
+    font-size: 1.125rem;
   }
 
   .nav-tab {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.85rem;
-  }
-
-  .tab-icon {
-    margin-right: 0.25rem;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
   }
 }
 

@@ -227,7 +227,6 @@ export default {
         <div class="row" v-if="showSMA">
             <div class="col">
                 <div class="card no-bottom-border">
-                    <SMAView :contractAddress="smaAddress" />
                     <SMA :contractAddress="smaAddress" :allowed-base-tokens="allowedBaseTokens" :allowed-interest-tokens="allowedInterestTokens"/>
                 </div>
             </div>

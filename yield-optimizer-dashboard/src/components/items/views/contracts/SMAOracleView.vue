@@ -68,117 +68,83 @@ export default {
 
 <template>
     <div id="oracle-view">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-12">
-                                    <h2>Oracle Data</h2>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="form-group">
-                                        <label for="oracle-address">Oracle Address</label>
-                                        <div class="d-flex align-items-center">
-                                            <div class="form-control d-flex align-items-center">
-                                                <a 
-                                                    :href="getExplorerUrl(contractAddress, true)" 
-                                                    target="_blank" 
-                                                    class="text-primary text-decoration-none"
-                                                    style="word-break: break-all;"
-                                                >
-                                                    {{ formatAddress(contractAddress) }}
-                                                </a>
-                                            </div>
-                                            <button 
-                                                class="btn btn-outline-primary btn-sm ms-2 copy-button" 
-                                                @click="copyToClipboard(contractAddress)"
-                                                :title="isCopied ? 'Copied!' : 'Copy address'"
-                                            >
-                                                <i :class="['bi', isCopied ? 'bi-check-lg' : 'bi-clipboard']"></i>
-                                                <span class="ms-1">{{ isCopied ? 'Copied!' : 'Copy' }}</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row mt-4">
-                                <div class="col-12">
-                                    <div class="form-group">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <label for="sma-fee" class="mb-0">SMA Fee (ETH)</label>
-                                            <button 
-                                                class="btn btn-link btn-sm ms-2 help-btn" 
-                                                data-bs-toggle="tooltip" 
-                                                data-bs-placement="right"
-                                                title="The fee charged for deploying a new Separately Managed Account. This fee covers the gas costs and protocol maintenance."
-                                                @click.stop
-                                            >
-                                                <img 
-                                                    src="../../../../assets/info-circle.svg" 
-                                                    class="info-icon" 
-                                                    alt="Info"
-                                                />
-                                            </button>
-                                        </div>
-                                        <label id="ETH-units"> 
-                                            <input type="text" class="form-control" id="sma-fee" v-model="smaFee" readonly>
-                                        </label>                                        
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="form-group">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <label for="best-rate-protocols" class="mb-0">Best Rate Protocols</label>
-                                            <button 
-                                                class="btn btn-link btn-sm ms-2 help-btn" 
-                                                data-bs-toggle="tooltip" 
-                                                data-bs-placement="right"
-                                                title="The protocols offering the highest yields for each supported token. These rates are updated in real-time to ensure optimal returns."
-                                                @click.stop
-                                            >
-                                                <img 
-                                                    src="../../../../assets/info-circle.svg" 
-                                                    class="info-icon" 
-                                                    alt="Info"
-                                                />
-                                            </button>
-                                        </div>
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">Token Symbol</th>
-                                                    <th scope="col">Token Address</th>
-                                                    <th scope="col">Best Rate Protocol</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="protocol in bestRateProtocols">
-                                                    <td>{{ protocol.tokenSymbol }}</td>
-                                                    <td>
-                                                        <a 
-                                                            :href="getExplorerUrl(protocol.tokenAddress, true)" 
-                                                            target="_blank" 
-                                                            class="text-primary"
-                                                            style="word-break: break-all;"
-                                                        >
-                                                            {{ formatAddress(protocol.tokenAddress) }}
-                                                        </a>
-                                                    </td>
-                                                    <td>{{ protocol.bestRateProtocol }}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <div class="form-container">
+            <div class="form-group">
+                <div class="d-flex align-items-center">
+                    Oracle Address
+                    <a 
+                        :href="getExplorerUrl(oracleAddress, true)" 
+                        target="_blank" 
+                        class="text-primary text-decoration-none ms-2"
+                    >
+                        <img 
+                            src="../../../../assets/link.svg" 
+                            class="link-icon" 
+                            alt="External link"
+                        />
+                    </a>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="d-flex align-items-center mb-2">
+                    <label for="sma-fee" class="mb-0">SMA Fee (ETH)</label>
+                    <button 
+                        class="btn btn-link btn-sm ms-2 help-btn" 
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="right"
+                        title="The fee charged for deploying a new Separately Managed Account. This fee covers the gas costs and protocol maintenance."
+                        @click.stop
+                    >
+                        <img 
+                            src="../../../../assets/info-circle.svg" 
+                            class="info-icon" 
+                            alt="Info"
+                        />
+                    </button>
+                </div>
+                <label id="ETH-units"> 
+                    <input type="text" class="form-control" id="sma-fee" v-model="smaFee" readonly>
+                </label>                                        
+            </div>
+            <div class="form-group">
+                <div class="d-flex align-items-center mb-2">
+                    <label for="best-rate-protocols" class="mb-0">Best Rate Protocols</label>
+                    <button 
+                        class="btn btn-link btn-sm ms-2 help-btn" 
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="right"
+                        title="The protocols offering the highest yields for each supported token. These rates are updated in real-time to ensure optimal returns."
+                        @click.stop
+                    >
+                        <img 
+                            src="../../../../assets/info-circle.svg" 
+                            class="info-icon" 
+                            alt="Info"
+                        />
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Token Symbol</th>
+                                <th scope="col">Best Rate Protocol</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="protocol in bestRateProtocols">
+                                <td>
+                                    <a 
+                                        :href="getExplorerUrl(protocol.tokenAddress, true)" 
+                                        target="_blank"
+                                    >
+                                        {{ protocol.tokenSymbol }}
+                                    </a>
+                                </td>
+                                <td>{{ protocol.bestRateProtocol }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -188,12 +154,13 @@ export default {
 <style scoped>
 #oracle-view {
     color: var(--text-primary);
+    padding: 1rem;
 }
 
-#oracle-view h2 {
-    color: var(--text-primary);
-    font-weight: 600;
-    margin-bottom: 1.5rem;
+.form-container {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #oracle-view label {
@@ -201,16 +168,17 @@ export default {
     font-weight: 500;
     margin-bottom: 0.75rem;
     display: block;
+    font-size: 0.875rem;
 }
 
 #oracle-view .form-control {
     background-color: var(--card-background);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    font-size: 1rem;
+    font-size: 0.875rem;
     padding: 0.75rem;
     margin-top: 0.5rem;
-    height: 48px;
+    height: 42px;
 }
 
 #oracle-view .form-control:read-only {
@@ -218,27 +186,68 @@ export default {
     color: var(--text-primary);
 }
 
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+    width: calc(100% + 2rem);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #oracle-view .table {
-    color: #000000;
+    color: var(--text-primary);
     background-color: var(--card-background);
     border-collapse: separate;
     border-spacing: 0;
     width: 100%;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    min-width: 400px;
 }
 
 #oracle-view .table th {
-    color: #ffffff;
+    color: var(--text-primary);
     font-weight: 600;
     border-bottom: 2px solid var(--border-color);
-    padding: 1rem;
+    padding: 0.75rem;
     text-align: left;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+}
+
+#oracle-view .table th:nth-child(1) {
+    width: 35%;
+}
+
+#oracle-view .table th:nth-child(2) {
+    width: 65%;
 }
 
 #oracle-view .table td {
-    color: #000000;
+    color: var(--text-primary);
     border-bottom: 1px solid var(--border-color);
-    padding: 1rem;
-    font-size: 0.95rem;
+    padding: 0.75rem;
+    font-size: 0.8125rem;
+}
+
+#oracle-view .table td:nth-child(1) {
+    color: #000000;
+}
+
+#oracle-view .table td:nth-child(1) a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+#oracle-view .table td:nth-child(1) a:hover {
+    text-decoration: underline;
+}
+
+#oracle-view .table td:nth-child(2) {
+    color: #000000;
 }
 
 #oracle-view .table tr:hover {
@@ -246,43 +255,16 @@ export default {
 }
 
 #oracle-view .table tr:hover td {
+    color: var(--text-primary);
+}
+
+#oracle-view .table tr:hover td:nth-child(1),
+#oracle-view .table tr:hover td:nth-child(2) {
     color: #000000;
 }
 
 .form-group {
-    margin-bottom: 2rem;
-}
-
-.copy-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 0.25rem;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    height: 48px;
-    margin-top: 0.5rem;
-    min-width: 100px;
-}
-
-.copy-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.copy-button:active {
-    transform: translateY(0);
-}
-
-.ms-2 {
-    margin-left: 0.5rem;
-}
-
-.ms-1 {
-    margin-left: 0.25rem;
+    margin-bottom: 1.5rem;
 }
 
 .help-btn {
@@ -304,5 +286,74 @@ export default {
     width: 16px;
     height: 16px;
     transition: transform 0.3s ease;
+}
+
+.link-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 1;
+    filter: invert(32%) sepia(98%) saturate(1234%) hue-rotate(202deg) brightness(97%) contrast(101%);
+}
+
+@media (max-width: 768px) {
+    .form-container,
+    .table-container {
+        max-width: 600px;
+    }
+
+    #oracle-view label {
+        font-size: 0.8125rem;
+    }
+
+    #oracle-view .form-control {
+        font-size: 0.8125rem;
+        height: 38px;
+        padding: 0.625rem;
+    }
+
+    #oracle-view .table {
+        font-size: 0.8125rem;
+    }
+
+    #oracle-view .table th {
+        font-size: 0.75rem;
+        padding: 0.625rem;
+    }
+
+    #oracle-view .table td {
+        font-size: 0.75rem;
+        padding: 0.625rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-container,
+    .table-container {
+        max-width: 100%;
+    }
+
+    #oracle-view label {
+        font-size: 0.75rem;
+    }
+
+    #oracle-view .form-control {
+        font-size: 0.75rem;
+        height: 36px;
+        padding: 0.5rem;
+    }
+
+    #oracle-view .table {
+        font-size: 0.75rem;
+    }
+
+    #oracle-view .table th {
+        font-size: 0.6875rem;
+        padding: 0.5rem;
+    }
+
+    #oracle-view .table td {
+        font-size: 0.6875rem;
+        padding: 0.5rem;
+    }
 }
 </style>
