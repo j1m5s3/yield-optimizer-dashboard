@@ -69,12 +69,12 @@ const handleViewChange = async (view) => {
   <div id="app">
     <header>
       <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center">
+        <div class="header-content">
+          <div class="header-left">
             <img src="./assets/robot_trading_logo_cropped.png" alt="Logo" class="header-logo me-3" />
             <h1>Yield Optimizer Dashboard</h1>
           </div>
-          <div class="d-flex align-items-center gap-3">
+          <div class="header-right">
             <div class="nav-tabs">
               <button 
                 class="nav-tab" 
@@ -140,6 +140,36 @@ main {
   padding-top: 80px;
 }
 
+header {
+  background-color: var(--card-background);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .header-logo {
   height: 40px;
   width: 40px;
@@ -170,6 +200,7 @@ header h1 {
   color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .nav-tab:hover {
@@ -236,6 +267,26 @@ header h1 {
 }
 
 @media (max-width: 768px) {
+  header {
+    padding: 0.75rem 0;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .header-left {
+    justify-content: center;
+  }
+
+  .header-right {
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
   .header-logo {
     height: 32px;
     width: 32px;
@@ -243,6 +294,16 @@ header h1 {
   
   header h1 {
     font-size: 1.25rem;
+  }
+
+  .nav-tabs {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav-tab {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
   }
 
   .message-content {
@@ -255,6 +316,21 @@ header h1 {
 
   .message-content h2 {
     font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container-fluid {
+    padding: 0 1rem;
+  }
+
+  .nav-tab {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .tab-icon {
+    margin-right: 0.25rem;
   }
 }
 
