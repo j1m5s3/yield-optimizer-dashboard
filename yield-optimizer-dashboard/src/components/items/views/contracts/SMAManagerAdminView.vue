@@ -15,31 +15,27 @@ export default {
 
 <template>
     <div id="manager-admin-view">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <div class="form-group">
-                        <div class="d-flex align-items-center mb-2">
-                            <label for="subFee" class="mb-0">Manager Subscription Fee (USDC)</label>
-                            <button 
-                                class="btn btn-link btn-sm ms-2 help-btn" 
-                                data-bs-toggle="tooltip" 
-                                data-bs-placement="right"
-                                title="The subscription fee required to access the SMA management features. This fee is charged in USDC and covers the costs of active portfolio management."
-                                @click.stop
-                            >
-                                <img 
-                                    src="../../../../assets/info-circle.svg" 
-                                    class="info-icon" 
-                                    alt="Info"
-                                />
-                            </button>
-                        </div>
-                        <label id="USDC-units">
-                            <input type="text" class="form-control" id="subFee" v-model="subFee" readonly>
-                        </label>
-                    </div>
+        <div class="form-container">
+            <div class="form-group">
+                <div class="d-flex align-items-center mb-2">
+                    <label for="subFee" class="mb-0">Manager Subscription Fee (USDC)</label>
+                    <button 
+                        class="btn btn-link btn-sm ms-2 help-btn" 
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="right"
+                        title="The subscription fee required to access the SMA management features. This fee is charged in USDC and covers the costs of active portfolio management."
+                        @click.stop
+                    >
+                        <img 
+                            src="../../../../assets/info-circle.svg" 
+                            class="info-icon" 
+                            alt="Info"
+                        />
+                    </button>
                 </div>
+                <label id="USDC-units">
+                    <input type="text" class="form-control" id="subFee" v-model="subFee" readonly>
+                </label>
             </div>
         </div>
     </div>
@@ -48,6 +44,13 @@ export default {
 <style scoped>
 #manager-admin-view {
     color: var(--text-primary);
+    padding: 1rem;
+}
+
+.form-container {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #manager-admin-view label {
@@ -55,6 +58,26 @@ export default {
     font-weight: 500;
     margin-bottom: 0.75rem;
     display: block;
+    font-size: 0.875rem;
+}
+
+#manager-admin-view .form-control {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    height: 42px;
+}
+
+#manager-admin-view .form-control:read-only {
+    background-color: var(--card-background);
+    color: var(--text-primary);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
 }
 
 .help-btn {
@@ -78,16 +101,35 @@ export default {
     transition: transform 0.3s ease;
 }
 
-#manager-admin-view .form-control {
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    font-size: 1rem;
-    padding: 0.75rem;
-    margin-top: 0.5rem;
+@media (max-width: 768px) {
+    .form-container {
+        max-width: 600px;
+    }
+
+    #manager-admin-view label {
+        font-size: 0.8125rem;
+    }
+
+    #manager-admin-view .form-control {
+        font-size: 0.8125rem;
+        height: 38px;
+        padding: 0.625rem;
+    }
 }
 
-.form-group {
-    margin-bottom: 2rem;
+@media (max-width: 480px) {
+    .form-container {
+        max-width: 100%;
+    }
+
+    #manager-admin-view label {
+        font-size: 0.75rem;
+    }
+
+    #manager-admin-view .form-control {
+        font-size: 0.75rem;
+        height: 36px;
+        padding: 0.5rem;
+    }
 }
 </style>
