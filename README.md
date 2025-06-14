@@ -1,7 +1,7 @@
 # Yield Optimizer Dashboard
 
 <div align="center">
-  <img src="src/assets/robot_trading_logo_cropped.png" alt="Yield Optimizer Logo" width="200"/>
+  <img src="yield-optimizer-dashboard/src/assets/robot_trading_logo_cropped.png" alt="Yield Optimizer Logo" width="200"/>
   <br/>
   <p><em>Smart DeFi yield optimization and management platform</em></p>
 </div>
