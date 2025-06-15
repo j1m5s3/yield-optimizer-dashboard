@@ -235,10 +235,10 @@ export default {
             <div class="col">
                 <div class="footer">
                     <div class="social-links">
-                        <a href="https://www.linkedin.com/in/your-profile" target="_blank" class="social-link linkedin" title="LinkedIn">
+                        <a href="www.linkedin.com/in/james-lynch-14645911a" target="_blank" class="social-link linkedin" title="LinkedIn">
                             <img src="@/assets/linkedin.svg" alt="LinkedIn" class="social-icon">
                         </a>
-                        <a href="https://github.com/your-username" target="_blank" class="social-link github" title="GitHub">
+                        <a href="https://github.com/j1m5s3/yield-optimizer-dashboard" target="_blank" class="social-link github" title="GitHub">
                             <img src="@/assets/github.svg" alt="GitHub" class="social-icon">
                         </a>
                     </div>

@@ -92,6 +92,14 @@ const handleViewChange = async (view) => {
                 <span class="tab-icon">🤖</span>
                 <span class="tab-label">SMA</span>
               </button>
+              <a 
+                href="https://pam-2.gitbook.io/pam-docs" 
+                target="_blank"
+                class="nav-tab"
+              >
+                <span class="tab-icon">📚</span>
+                <span class="tab-label">Docs</span>
+              </a>
             </div>
             <w3m-button size="md" />
           </div>
@@ -201,10 +209,16 @@ header h1 {
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .nav-tab:hover {
   background-color: var(--hover-color);
+  text-decoration: none;
+  color: var(--text-primary);
 }
 
 .nav-tab.active {
