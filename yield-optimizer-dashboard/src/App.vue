@@ -132,6 +132,36 @@ const handleViewChange = async (view) => {
         </div>
       </div>
     </main>
+    <footer class="footer">
+      <div class="container-fluid">
+        <div class="social-links">
+          <a 
+            href="https://www.linkedin.com/in/james-lynch-14645911a" 
+            target="_blank" 
+            class="social-link linkedin"
+            title="Connect on LinkedIn"
+          >
+            <img 
+              src="./assets/linkedin.svg" 
+              alt="LinkedIn"
+              class="social-icon"
+            />
+          </a>
+          <a 
+            href="https://github.com/j1m5s3" 
+            target="_blank" 
+            class="social-link github"
+            title="View on GitHub"
+          >
+            <img 
+              src="./assets/github.svg" 
+              alt="GitHub"
+              class="social-icon"
+            />
+          </a>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -362,6 +392,102 @@ header h1 {
   .nav-tab {
     padding: 0.375rem 0.5rem;
     font-size: 0.875rem;
+  }
+}
+
+.footer {
+  margin-top: 2rem;
+  padding: 1rem;
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+}
+
+.social-link:hover {
+  transform: translateY(-2px);
+}
+
+.social-link.linkedin:hover {
+  background-color: #0077b5;
+  box-shadow: 0 0 15px rgba(0, 119, 181, 0.5);
+  border-color: #0077b5;
+}
+
+.social-link.github:hover {
+  background-color: #2ea44f;
+  box-shadow: 0 0 15px rgba(46, 164, 79, 0.5);
+  border-color: #2ea44f;
+}
+
+.social-icon {
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.social-link:hover .social-icon {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    margin-top: 1rem;
+    padding: 0.75rem;
+  }
+
+  .social-links {
+    gap: 1.5rem;
+  }
+
+  .social-link {
+    width: 36px;
+    height: 36px;
+  }
+
+  .social-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .social-links {
+    gap: 1rem;
+  }
+
+  .social-link {
+    width: 32px;
+    height: 32px;
+  }
+
+  .social-icon {
+    width: 16px;
+    height: 16px;
   }
 }
 
