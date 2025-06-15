@@ -42,8 +42,12 @@ jobs:
           VITE_BOT_API_URL: ${{secrets.VITE_BOT_API_URL}}
         run: |
           cd ./yield-optimizer-dashboard
-          echo $VITE_BOT_API_URL
-          echo "VITE_BOT_API_URL=$VITE_BOT_API_URL\nVITE_PROJECT_ID=$VITE_PROJECT_ID" > .env
+          az storage blob download \
+          --account-name $AZURE_STORAGE_ACCOUNT \
+          --container-name $AZURE_STORAGE_CONTAINER \
+          --name .env \
+          --file ./.env \
+          --auth-mode login
           ls -la
           npm install
           npm run build --if-present
