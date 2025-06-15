@@ -15,12 +15,13 @@ export const config = createConfig({
 
 // 1. Define constants
 const projectId = import.meta.env.VITE_PROJECT_ID
+const domain = import.meta.env.VITE_DOMAIN
 
 // 2. Create wagmiConfig
 const metadata = {
     name: 'Yield Optimizer Dashboard',
     description: 'Dashboard for Defi Yield Optimizer',
-    url: 'http://localhost:5173/', // origin must match your domain & subdomain
+    url: domain, // origin must match your domain & subdomain
     icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
