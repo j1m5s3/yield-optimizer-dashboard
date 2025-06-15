@@ -231,20 +231,6 @@ export default {
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col">
-                <div class="footer">
-                    <div class="social-links">
-                        <a href="www.linkedin.com/in/james-lynch-14645911a" target="_blank" class="social-link linkedin" title="LinkedIn">
-                            <img src="@/assets/linkedin.svg" alt="LinkedIn" class="social-icon">
-                        </a>
-                        <a href="https://github.com/j1m5s3/yield-optimizer-dashboard" target="_blank" class="social-link github" title="GitHub">
-                            <img src="@/assets/github.svg" alt="GitHub" class="social-icon">
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </template>
 
@@ -365,59 +351,5 @@ h3 {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     border-bottom: none;
-}
-
-.footer {
-    margin-top: 2rem;
-    padding: 1rem;
-    text-align: center;
-    border-top: 1px solid var(--border-color);
-}
-
-.social-links {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-}
-
-.social-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-primary);
-    text-decoration: none;
-    transition: all 0.3s ease;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-}
-
-.social-link:hover {
-    transform: translateY(-2px);
-}
-
-.social-link.linkedin:hover {
-    background-color: #0077b5;
-    box-shadow: 0 0 15px rgba(0, 119, 181, 0.5);
-    border-color: #0077b5;
-}
-
-.social-link.github:hover {
-    background-color: #2ea44f;
-    box-shadow: 0 0 15px rgba(46, 164, 79, 0.5);
-    border-color: #2ea44f;
-}
-
-.social-icon {
-    width: 24px;
-    height: 24px;
-    filter: var(--icon-filter);
-    transition: all 0.3s ease;
-}
-
-.social-link:hover .social-icon {
-    filter: brightness(0) invert(1);
 }
 </style>
