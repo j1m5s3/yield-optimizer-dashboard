@@ -38,8 +38,8 @@ jobs:
 
       - name: npm install, build, and test
         env: 
-          VITE_PROJECT_ID: ${{secrets.VITE_PROJECT_ID}}
-          VITE_BOT_API_URL: ${{secrets.VITE_BOT_API_URL}}
+          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
         run: |
           cd ./yield-optimizer-dashboard
           az storage blob download \
